@@ -1,0 +1,2200 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRIMINO-DEX: The Noir Archives & Theoretical Case Suite</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Playfair Display, Cinzel, Kanit, Sarabun, Special Elite, JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Kanit:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Special+Elite&display=swap" rel="stylesheet">
+    <!-- Vue 3 Global Build -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['Cinzel', 'Playfair Display', 'Kanit', 'serif'],
+                        kanit: ['Kanit', 'sans-serif'],
+                        sarabun: ['Sarabun', 'sans-serif'],
+                        detective: ['Special Elite', 'JetBrains Mono', 'monospace'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Theme CSS Variables */
+        :root {
+            --bg-primary: #070a10;
+            --bg-secondary: #0d1320;
+            --bg-card: #121b2d;
+            --bg-card-hover: #18233a;
+            --border-color: rgba(229, 184, 105, 0.22);
+            --border-strong: rgba(229, 184, 105, 0.5);
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --accent-gold: #e5b869;
+            --accent-gold-bg: rgba(229, 184, 105, 0.14);
+            --accent-cyan: #22d3ee;
+            --accent-crimson: #f43f5e;
+            --stamp-color: #fb7185;
+            --shadow-elevated: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+        }
+
+        html.theme-light {
+            --bg-primary: #f6f3eb;
+            --bg-secondary: #ede8dc;
+            --bg-card: #fffdf8;
+            --bg-card-hover: #f9f6ee;
+            --border-color: rgba(120, 53, 15, 0.22);
+            --border-strong: rgba(153, 27, 27, 0.45);
+            --text-primary: #1c1917;
+            --text-secondary: #292524;
+            --text-muted: #57534e;
+            --accent-gold: #9a3412;
+            --accent-gold-bg: rgba(154, 52, 18, 0.09);
+            --accent-cyan: #0369a1;
+            --accent-crimson: #991b1b;
+            --stamp-color: #991b1b;
+            --shadow-elevated: 0 15px 35px -12px rgba(68, 64, 60, 0.16);
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Sarabun', sans-serif;
+            transition: background-color 0.35s ease, color 0.35s ease;
+            overflow-x: hidden;
+        }
+
+        .app-surface {
+            background-color: var(--bg-secondary);
+            border-color: var(--border-color);
+        }
+
+        .app-card {
+            background-color: var(--bg-card);
+            border-color: var(--border-color);
+            box-shadow: var(--shadow-elevated);
+            transition: all 0.25s ease;
+        }
+
+        .app-card-hover:hover {
+            background-color: var(--bg-card-hover);
+            border-color: var(--border-strong);
+            transform: translateY(-2px);
+        }
+
+        .text-main { color: var(--text-primary); }
+        .text-sub { color: var(--text-secondary); }
+        .text-dim { color: var(--text-muted); }
+        .text-gold { color: var(--accent-gold); }
+        .bg-gold-soft { background-color: var(--accent-gold-bg); }
+        .border-gold-soft { border-color: var(--border-color); }
+        .border-gold-strong { border-color: var(--border-strong); }
+        .text-cyan-accent { color: var(--accent-cyan); }
+        .text-crimson-accent { color: var(--accent-crimson); }
+
+        /* Subtle Noir Film Grain & Scanlines (Dark Mode Only) */
+        .noir-overlay {
+            background: radial-gradient(circle at 50% 0%, rgba(229, 184, 105, 0.06), transparent 65%),
+                        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.18) 50%);
+            background-size: 100% 100%, 100% 4px;
+            pointer-events: none;
+        }
+        html.theme-light .noir-overlay {
+            background: radial-gradient(circle at 50% 0%, rgba(154, 52, 18, 0.05), transparent 70%);
+        }
+
+        /* Archival Stamp */
+        .case-stamp {
+            border: 2.5px double var(--stamp-color);
+            color: var(--stamp-color);
+            font-family: 'Special Elite', 'JetBrains Mono', monospace;
+            letter-spacing: 0.12em;
+            transform: rotate(-3deg);
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        /* 3D Flashcard Flip */
+        .perspective-1000 { perspective: 1200px; }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .rotate-y-180 { transform: rotateY(180deg); }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.3);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-gold); }
+
+        /* Red String Pulse */
+        @keyframes pulseGlow {
+            0%, 100% { filter: drop-shadow(0 0 3px rgba(244, 63, 94, 0.6)); }
+            50% { filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.95)); }
+        }
+        .red-string-active {
+            animation: pulseGlow 2.4s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen relative selection:bg-amber-500/30">
+    <!-- Atmospheric Overlay -->
+    <div class="fixed inset-0 noir-overlay z-40 pointer-events-none"></div>
+
+    <div id="app" class="min-h-screen flex flex-col relative z-10">
+        <!-- Toast Notification -->
+        <transition name="fade">
+            <div v-if="toastMessage"
+                 class="fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl border border-gold-strong app-card shadow-2xl flex items-center space-x-3 max-w-sm">
+                <span class="text-lg">📌</span>
+                <p class="text-sm font-kanit text-main">{{ toastMessage }}</p>
+            </div>
+        </transition>
+
+        <!-- Top Navigation Header -->
+        <header class="sticky top-0 z-30 border-b border-gold-soft backdrop-blur-xl app-surface/95">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3.5">
+                    <!-- Brand Identity -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3.5">
+                            <!-- Custom Detective Crest SVG -->
+                            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500/20 to-rose-500/20 border border-gold-strong flex items-center justify-center shrink-0">
+                                <svg class="w-7 h-7 text-gold" viewBox="0 0 36 36" fill="none">
+                                    <circle cx="16" cy="16" r="10" stroke="currentColor" stroke-width="2.2"/>
+                                    <path d="M23.5 23.5L31 31" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
+                                    <path d="M12 16C12 13.7909 13.7909 12 16 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                    <circle cx="16" cy="16" r="2.2" fill="currentColor"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="flex items-center flex-wrap gap-2">
+                                    <h1 class="font-display font-bold text-lg sm:text-xl tracking-wider text-main">
+                                        CRIMINO-DEX
+                                    </h1>
+                                    <span class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-gold-soft text-gold border border-gold-soft font-semibold">
+                                        EDITION FOR PRAE (แพร)
+                                    </span>
+                                </div>
+                                <p class="text-xs text-dim font-sarabun mt-0.5">
+                                    {{ lang === 'th' ? 'คลังแฟ้มคดีอาชญาวิทยา นิติวิทยาศาสตร์ และฐานข้อมูลงานวิจัยระดับวิชาการ' : 'The Noir Archives of Criminology, Forensic Science & Academic Literature' }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Mobile Utility Controls -->
+                        <div class="flex lg:hidden items-center space-x-1.5">
+                            <button @click="toggleLang" class="px-2.5 py-1.5 rounded-lg border border-gold-soft app-card text-xs font-mono font-bold text-gold" :title="lang === 'th' ? 'Switch to English' : 'เปลี่ยนเป็นภาษาไทย'">
+                                {{ lang === 'th' ? 'TH / EN' : 'EN / TH' }}
+                            </button>
+                            <button @click="toggleTheme" class="p-2 rounded-lg border border-gold-soft app-card text-gold" :title="isDark ? 'Daylight Archival Mode' : 'Noir Dark Mode'">
+                                <span v-if="isDark">☀️</span>
+                                <span v-else>🌙</span>
+                            </button>
+                            <button @click="toggleAudio" class="p-2 rounded-lg border border-gold-soft app-card text-gold" :title="isPlayingAudio ? 'Mute Ambient Rain' : 'Play Noir Rain & Vinyl'">
+                                <span>{{ isPlayingAudio ? '🔊' : '🌧️' }}</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Desktop Controls & Main Navigation -->
+                    <div class="flex flex-wrap items-center justify-between lg:justify-end gap-2">
+                        <!-- Navigation Tabs -->
+                        <nav class="flex flex-wrap items-center gap-1.5">
+                            <button v-for="tab in navTabs" :key="tab.id"
+                                    @click="activeTab = tab.id"
+                                    :class="activeTab === tab.id
+                                        ? 'bg-amber-600 text-white dark:bg-amber-500 dark:text-slate-950 font-semibold shadow-md'
+                                        : 'app-card text-sub hover:text-main'"
+                                    class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-kanit border border-gold-soft transition flex items-center space-x-1.5">
+                                <span>{{ tab.icon }}</span>
+                                <span>{{ lang === 'th' ? tab.labelTh : tab.labelEn }}</span>
+                            </button>
+                        </nav>
+
+                        <!-- Desktop Utility Toggles -->
+                        <div class="hidden lg:flex items-center space-x-2 pl-2 border-l border-gold-soft">
+                            <!-- Language Switcher -->
+                            <button @click="toggleLang"
+                                    class="px-3 py-1.5 rounded-xl border border-gold-soft app-card text-xs font-mono font-semibold text-gold hover:border-gold-strong transition flex items-center space-x-1.5">
+                                <span>🌐</span>
+                                <span>{{ lang === 'th' ? 'ไทย | EN' : 'EN | ไทย' }}</span>
+                            </button>
+
+                            <!-- Theme Switcher -->
+                            <button @click="toggleTheme"
+                                    class="px-3 py-1.5 rounded-xl border border-gold-soft app-card text-xs font-kanit text-main hover:border-gold-strong transition flex items-center space-x-1.5">
+                                <span>{{ isDark ? '☀️' : '🌙' }}</span>
+                                <span>{{ isDark ? (lang === 'th' ? 'โหมดสว่าง' : 'Daylight') : (lang === 'th' ? 'โหมดมืด' : 'Noir') }}</span>
+                            </button>
+
+                            <!-- Ambient Soundscape -->
+                            <button @click="toggleAudio"
+                                    :class="isPlayingAudio ? 'border-amber-500 bg-gold-soft text-gold' : 'app-card text-dim'"
+                                    class="px-3 py-1.5 rounded-xl border border-gold-soft text-xs font-kanit hover:border-gold-strong transition flex items-center space-x-1.5">
+                                <span>{{ isPlayingAudio ? '🎧' : '🌧️' }}</span>
+                                <span>{{ isPlayingAudio ? (lang === 'th' ? 'เสียงฝน: เปิด' : 'Rain: ON') : (lang === 'th' ? 'เสียงฝน' : 'Ambience') }}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace Container -->
+        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+            <!-- =====================================================================
+                 TAB 1: INVESTIGATIVE CASE FILES (เรื่องสั้นสืบสวน & ถอดรหัสทฤษฎี)
+                 ===================================================================== -->
+            <section v-if="activeTab === 'cases'" class="space-y-6">
+                <!-- Section Header -->
+                <div class="app-card rounded-2xl p-6 border border-gold-soft flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center space-x-2.5 mb-1">
+                            <span class="case-stamp">CONFIDENTIAL DOSSIER</span>
+                            <span class="text-xs font-mono text-dim">ARCHIVE #01 — NARRATIVE FORENSICS</span>
+                        </div>
+                        <h2 class="text-2xl sm:text-3xl font-kanit font-bold text-main">
+                            {{ lang === 'th' ? 'แฟ้มคดีจำลองเชิงวรรณกรรม & การถอดรหัสทางอาชญาวิทยา' : 'Cinematic Case Files & Theoretical Decoding' }}
+                        </h2>
+                        <p class="text-sm sm:text-base text-sub mt-1 max-w-3xl leading-relaxed">
+                            {{ lang === 'th'
+                                ? 'เรียนรู้ทฤษฎีอาชญาวิทยาและหลักนิติวิทยาศาสตร์ผ่านเรื่องเล่าแนวสืบสวนสอบสวน วิเคราะห์พฤติกรรมผู้กระทำผิดทีละฉาก พร้อมเชื่อมโยงสู่งานวิจัยต้นฉบับ'
+                                : 'Master criminological theories and forensic protocols through atmospheric detective narratives, scene-by-scene behavioral analysis, and direct academic citations.' }}
+                        </p>
+                    </div>
+                    <!-- Case Selector Pills -->
+                    <div class="flex flex-wrap gap-2">
+                        <button v-for="(c, idx) in casesData" :key="c.id"
+                                @click="selectCase(idx)"
+                                :class="selectedCaseIndex === idx
+                                    ? 'bg-amber-600 text-white dark:bg-amber-500 dark:text-slate-950 font-semibold'
+                                    : 'app-surface text-sub hover:text-main'"
+                                class="px-3.5 py-2 rounded-xl border border-gold-soft text-xs sm:text-sm font-kanit transition">
+                            {{ c.code }}: {{ lang === 'th' ? c.shortTitleTh : c.shortTitleEn }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Active Case Study Layout -->
+                <div v-if="currentCase" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Left Column: Atmospheric Visual + Narrative Story (7 Cols) -->
+                    <div class="lg:col-span-7 space-y-6">
+                        <div class="app-card rounded-2xl overflow-hidden border border-gold-soft">
+                            <!-- Custom Illustrated Crime Scene Banner (SVG) -->
+                            <div class="relative h-56 sm:h-64 w-full bg-slate-950 overflow-hidden border-b border-gold-soft">
+                                <!-- Scene 1 SVG: Midnight Convenience Store -->
+                                <svg v-if="currentCase.id === 'case-strain'" class="w-full h-full object-cover" viewBox="0 0 800 300" preserveAspectRatio="xMidYMid slice">
+                                    <defs>
+                                        <linearGradient id="sky1" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stop-color="#050811"/>
+                                            <stop offset="100%" stop-color="#141e30"/>
+                                        </linearGradient>
+                                        <radialGradient id="neonGlow" cx="50%" cy="50%" r="50%">
+                                            <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.35"/>
+                                            <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
+                                        </radialGradient>
+                                    </defs>
+                                    <rect width="800" height="300" fill="url(#sky1)"/>
+                                    <!-- City Silhouette -->
+                                    <rect x="30" y="60" width="90" height="200" fill="#0b1120"/>
+                                    <rect x="140" y="35" width="110" height="225" fill="#090e1a"/>
+                                    <rect x="560" y="50" width="100" height="210" fill="#0b1120"/>
+                                    <rect x="680" y="80" width="95" height="180" fill="#090e1a"/>
+                                    <!-- Convenience Store Front -->
+                                    <rect x="265" y="95" width="270" height="165" rx="4" fill="#0f172a" stroke="#e5b869" stroke-width="1.5"/>
+                                    <rect x="280" y="110" width="240" height="26" rx="2" fill="#083344" stroke="#22d3ee" stroke-width="1.5"/>
+                                    <text x="400" y="128" fill="#67e8f9" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle" letter-spacing="4">24H MART // 02:47 AM</text>
+                                    <!-- Store Interior Warm Light -->
+                                    <rect x="285" y="148" width="150" height="95" fill="#fef08a" fill-opacity="0.16" stroke="#fde047" stroke-opacity="0.4"/>
+                                    <rect x="448" y="148" width="68" height="112" fill="#1e293b" stroke="#94a3b8" stroke-opacity="0.4"/>
+                                    <!-- Wet Asphalt & Reflection -->
+                                    <rect x="0" y="260" width="800" height="40" fill="#04060b"/>
+                                    <ellipse cx="400" cy="278" rx="220" ry="12" fill="url(#neonGlow)"/>
+                                    <!-- Rain Streaks -->
+                                    <g stroke="#94a3b8" stroke-opacity="0.28" stroke-width="1">
+                                        <line x1="120" y1="20" x2="105" y2="70"/><line x1="240" y1="40" x2="225" y2="90"/>
+                                        <line x1="390" y1="15" x2="375" y2="65"/><line x1="510" y1="55" x2="495" y2="105"/>
+                                        <line x1="650" y1="25" x2="635" y2="75"/><line x1="720" y1="70" x2="705" y2="120"/>
+                                    </g>
+                                    <!-- Evidence Marker #1 -->
+                                    <polygon points="210,255 225,232 240,255" fill="#facc15"/>
+                                    <text x="225" y="252" fill="#000" font-size="10" font-weight="bold" text-anchor="middle">1</text>
+                                </svg>
+
+                                <!-- Scene 2 SVG: White-Collar Penthouse Ledger -->
+                                <svg v-else-if="currentCase.id === 'case-whitecollar'" class="w-full h-full object-cover" viewBox="0 0 800 300" preserveAspectRatio="xMidYMid slice">
+                                    <defs>
+                                        <linearGradient id="sky2" x1="0" y1="0" x2="1" y2="1">
+                                            <stop offset="0%" stop-color="#090d16"/>
+                                            <stop offset="100%" stop-color="#1e1b4b"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <rect width="800" height="300" fill="url(#sky2)"/>
+                                    <!-- Skyline Windows -->
+                                    <g fill="#e5b869" fill-opacity="0.25">
+                                        <rect x="60" y="50" width="12" height="18"/><rect x="85" y="50" width="12" height="18"/>
+                                        <rect x="60" y="80" width="12" height="18"/><rect x="110" y="80" width="12" height="18"/>
+                                        <rect x="660" y="40" width="14" height="20"/><rect x="690" y="70" width="14" height="20"/>
+                                        <rect x="720" y="40" width="14" height="20"/>
+                                    </g>
+                                    <!-- Executive Desk & Encrypted Terminal -->
+                                    <rect x="180" y="195" width="440" height="85" rx="6" fill="#1e293b" stroke="#e5b869" stroke-width="1.5"/>
+                                    <rect x="290" y="105" width="220" height="90" rx="6" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+                                    <!-- Financial Graph on Monitor -->
+                                    <polyline points="310,175 345,160 380,168 420,130 460,145 490,118" fill="none" stroke="#f43f5e" stroke-width="2.5"/>
+                                    <text x="400" y="186" fill="#38bdf8" font-family="monospace" font-size="10" text-anchor="middle">OFFSHORE_LEDGER_X99.CSV</text>
+                                    <!-- Shredded Document Pile -->
+                                    <path d="M530 195 L545 170 L560 195 L575 168 L590 195 Z" fill="#f8fafc" fill-opacity="0.8"/>
+                                    <polygon points="560,190 574,168 588,190" fill="#facc15"/>
+                                    <text x="574" y="187" fill="#000" font-size="10" font-weight="bold" text-anchor="middle">2</text>
+                                </svg>
+
+                                <!-- Scene 3 SVG: Abandoned Pier Forensic Trace -->
+                                <svg v-else-if="currentCase.id === 'case-forensic-pier'" class="w-full h-full object-cover" viewBox="0 0 800 300" preserveAspectRatio="xMidYMid slice">
+                                    <defs>
+                                        <linearGradient id="sky3" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stop-color="#040d14"/>
+                                            <stop offset="100%" stop-color="#0f293a"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <rect width="800" height="300" fill="url(#sky3)"/>
+                                    <!-- Moon & Fog -->
+                                    <circle cx="640" cy="68" r="32" fill="#fef3c7" fill-opacity="0.85"/>
+                                    <ellipse cx="400" cy="210" rx="420" ry="35" fill="#38bdf8" fill-opacity="0.1"/>
+                                    <!-- Wooden Pier -->
+                                    <rect x="0" y="215" width="800" height="85" fill="#0b1320"/>
+                                    <line x1="0" y1="215" x2="800" y2="215" stroke="#64748b" stroke-width="3"/>
+                                    <!-- UV Luminol Trace Glow -->
+                                    <ellipse cx="380" cy="248" rx="95" ry="22" fill="#22d3ee" fill-opacity="0.28" stroke="#22d3ee" stroke-dasharray="4 4"/>
+                                    <text x="380" y="252" fill="#a5f3fc" font-family="monospace" font-size="11" text-anchor="middle">UV LUMINOL PATTERN // IMPACT SPATTER</text>
+                                    <!-- DNA Helix Overlay -->
+                                    <path d="M120 70 Q150 100 120 130 T120 190" fill="none" stroke="#e5b869" stroke-width="2" stroke-opacity="0.6"/>
+                                    <path d="M150 70 Q120 100 150 130 T150 190" fill="none" stroke="#22d3ee" stroke-width="2" stroke-opacity="0.6"/>
+                                </svg>
+
+                                <!-- Scene 4 SVG: Broken Windows & Alleyway -->
+                                <svg v-else class="w-full h-full object-cover" viewBox="0 0 800 300" preserveAspectRatio="xMidYMid slice">
+                                    <rect width="800" height="300" fill="#090c15"/>
+                                    <!-- Brick Walls Perspective -->
+                                    <polygon points="0,0 260,65 260,245 0,300" fill="#171e2e" stroke="#334155"/>
+                                    <polygon points="800,0 540,65 540,245 800,300" fill="#171e2e" stroke="#334155"/>
+                                    <!-- Streetlamp Cone -->
+                                    <polygon points="400,45 270,260 530,260" fill="#fde047" fill-opacity="0.11"/>
+                                    <circle cx="400" cy="45" r="8" fill="#fef08a"/>
+                                    <!-- Broken Warehouse Window -->
+                                    <rect x="335" y="105" width="130" height="85" fill="#020617" stroke="#94a3b8" stroke-width="2"/>
+                                    <polygon points="335,105 385,105 355,150" fill="#38bdf8" fill-opacity="0.35"/>
+                                    <polygon points="465,190 410,190 445,140" fill="#38bdf8" fill-opacity="0.35"/>
+                                    <text x="400" y="232" fill="#e5b869" font-family="monospace" font-size="12" text-anchor="middle">SECTOR 7 // ENVIRONMENTAL DISORDER</text>
+                                </svg>
+
+                                <!-- Overlay Badge -->
+                                <div class="absolute top-3 left-3 flex items-center space-x-2">
+                                    <span class="px-3 py-1 rounded-full bg-black/75 border border-amber-400/50 text-amber-300 font-mono text-xs">
+                                        {{ currentCase.code }}
+                                    </span>
+                                    <span class="px-3 py-1 rounded-full bg-black/75 border border-cyan-400/40 text-cyan-300 font-kanit text-xs">
+                                        {{ lang === 'th' ? currentCase.genreTh : currentCase.genreEn }}
+                                    </span>
+                                </div>
+                                <div class="absolute bottom-3 right-3 px-3 py-1 rounded-lg bg-black/80 border border-slate-700 text-[11px] font-mono text-slate-300">
+                                    LOC: {{ currentCase.location }}
+                                </div>
+                            </div>
+
+                            <!-- Narrative Content -->
+                            <div class="p-6 space-y-5">
+                                <div>
+                                    <h3 class="text-xl sm:text-2xl font-kanit font-bold text-main">
+                                        {{ lang === 'th' ? currentCase.titleTh : currentCase.titleEn }}
+                                    </h3>
+                                    <p class="text-xs font-mono text-gold mt-1">
+                                        {{ lang === 'th' ? 'บันทึกเหตุการณ์โดยพนักงานสืบสวนอาวุโส • อ่านรายละเอียดและสังเกตเบาะแสที่ซ่อนอยู่' : 'INVESTIGATIVE LOG • READ CAREFULLY AND IDENTIFY EMBEDDED CLUES' }}
+                                    </p>
+                                </div>
+
+                                <!-- Story Chapters / Acts -->
+                                <div class="space-y-4">
+                                    <div v-for="(act, aIdx) in currentCase.acts" :key="aIdx"
+                                         class="p-4 rounded-xl app-surface border border-gold-soft relative">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span class="text-xs font-mono font-bold text-gold uppercase tracking-wider">
+                                                {{ lang === 'th' ? `ฉากที่ ${aIdx + 1}: ${act.headingTh}` : `ACT ${aIdx + 1}: ${act.headingEn}` }}
+                                            </span>
+                                            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-gold-soft text-gold">
+                                                {{ act.timestamp }}
+                                            </span>
+                                        </div>
+                                        <p class="text-sm sm:text-[15px] text-sub leading-relaxed font-sarabun">
+                                            {{ lang === 'th' ? act.storyTh : act.storyEn }}
+                                        </p>
+                                        <!-- Highlighted Clue Pill -->
+                                        <div class="mt-3 pt-2.5 border-t border-gold-soft flex items-start space-x-2">
+                                            <span class="text-xs font-mono font-bold text-crimson-accent shrink-0 mt-0.5">
+                                                [CLUE #{{ aIdx + 1 }}]
+                                            </span>
+                                            <span class="text-xs text-main font-kanit">
+                                                {{ lang === 'th' ? act.clueTh : act.clueEn }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Interactive Deduction & Professor's Analysis (5 Cols) -->
+                    <div class="lg:col-span-5 space-y-6">
+                        <!-- Interactive Deduction Check -->
+                        <div class="app-card rounded-2xl p-6 border border-gold-strong">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="font-kanit font-bold text-lg text-main flex items-center space-x-2">
+                                    <span>🧩</span>
+                                    <span>{{ lang === 'th' ? 'ทดสอบการวินิจฉัยทฤษฎี (Deduction Check)' : 'Theoretical Deduction Check' }}</span>
+                                </h4>
+                                <span class="text-xs font-mono text-gold">STEP 1</span>
+                            </div>
+                            <p class="text-xs sm:text-sm text-sub mb-4 leading-relaxed">
+                                {{ lang === 'th' ? currentCase.questionTh : currentCase.questionEn }}
+                            </p>
+
+                            <div class="space-y-2.5">
+                                <button v-for="(opt, oIdx) in currentCase.options" :key="oIdx"
+                                        @click="answerCaseQuestion(oIdx)"
+                                        :class="selectedOption === oIdx
+                                            ? (opt.isCorrect ? 'border-emerald-500 bg-emerald-500/15 text-main' : 'border-rose-500 bg-rose-500/15 text-main')
+                                            : 'app-surface border-gold-soft text-sub hover:text-main'"
+                                        class="w-full text-left p-3.5 rounded-xl border transition text-xs sm:text-sm font-kanit flex items-center justify-between">
+                                    <span>{{ lang === 'th' ? opt.labelTh : opt.labelEn }}</span>
+                                    <span v-if="selectedOption === oIdx" class="font-bold ml-2">
+                                        {{ opt.isCorrect ? '✅' : '❌' }}
+                                    </span>
+                                </button>
+                            </div>
+
+                            <!-- Immediate Feedback -->
+                            <div v-if="selectedOption !== null"
+                                 :class="currentCase.options[selectedOption].isCorrect ? 'border-emerald-500/50 bg-emerald-500/10' : 'border-rose-500/50 bg-rose-500/10'"
+                                 class="mt-4 p-4 rounded-xl border text-xs sm:text-sm leading-relaxed">
+                                <p class="font-kanit font-semibold text-main mb-1">
+                                    {{ currentCase.options[selectedOption].isCorrect
+                                        ? (lang === 'th' ? '🎯 วินิจฉัยได้แม่นยำมากค่ะคุณแพร!' : '🎯 Spot-on Criminological Diagnosis!')
+                                        : (lang === 'th' ? '🔍 ลองพิจารณาปัจจัยแวดล้อมเพิ่มเติมอีกนิดค่ะ:' : '🔍 Look closer at the behavioral & environmental triggers:') }}
+                                </p>
+                                <p class="text-sub">
+                                    {{ lang === 'th' ? currentCase.options[selectedOption].feedbackTh : currentCase.options[selectedOption].feedbackEn }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Professor's Deep Breakdown (Unlockable or Toggleable) -->
+                        <div class="app-card rounded-2xl p-6 border border-gold-soft space-y-4">
+                            <div class="flex items-center justify-between">
+                                <h4 class="font-kanit font-bold text-lg text-main flex items-center space-x-2">
+                                    <span>🎓</span>
+                                    <span>{{ lang === 'th' ? 'บทวิเคราะห์ฉบับอาจารย์ผู้เชี่ยวชาญ' : 'Professor’s Master Breakdown' }}</span>
+                                </h4>
+                                <button @click="revealCaseBreakdown = !revealCaseBreakdown"
+                                        class="px-3 py-1 rounded-lg bg-gold-soft border border-gold-strong text-xs font-kanit text-gold font-semibold">
+                                    {{ revealCaseBreakdown
+                                        ? (lang === 'th' ? 'ซ่อนเฉลยละเอียด' : 'Hide Breakdown')
+                                        : (lang === 'th' ? 'เปิดอ่านคำอธิบายเต็ม' : 'Reveal Full Analysis') }}
+                                </button>
+                            </div>
+
+                            <div v-if="revealCaseBreakdown" class="space-y-4 pt-2 border-t border-gold-soft">
+                                <!-- Criminological Lens -->
+                                <div>
+                                    <span class="text-xs font-mono font-bold text-gold uppercase">
+                                        {{ lang === 'th' ? '1. กรอบทฤษฎีอาชญาวิทยา (Criminological Framework)' : '1. Criminological Framework' }}
+                                    </span>
+                                    <p class="text-sm text-sub mt-1 leading-relaxed">
+                                        {{ lang === 'th' ? currentCase.criminologyAnalysisTh : currentCase.criminologyAnalysisEn }}
+                                    </p>
+                                </div>
+
+                                <!-- Forensic Protocol -->
+                                <div>
+                                    <span class="text-xs font-mono font-bold text-cyan-accent uppercase">
+                                        {{ lang === 'th' ? '2. หลักนิติวิทยาศาสตร์และการตรวจพิสูจน์ (Forensic Protocol)' : '2. Forensic Science Protocol' }}
+                                    </span>
+                                    <p class="text-sm text-sub mt-1 leading-relaxed">
+                                        {{ lang === 'th' ? currentCase.forensicAnalysisTh : currentCase.forensicAnalysisEn }}
+                                    </p>
+                                </div>
+
+                                <!-- Direct Academic Paper Links -->
+                                <div class="p-3.5 rounded-xl app-surface border border-gold-soft space-y-2">
+                                    <span class="text-xs font-mono font-bold text-main block">
+                                        {{ lang === 'th' ? '📑 เอกสารอ้างอิงต้นฉบับ (คลิกเปิดอ่านเปเปอร์จริง):' : '📑 Primary Academic Citations (Click to Open):' }}
+                                    </span>
+                                    <p class="text-xs font-mono text-dim leading-relaxed">
+                                        {{ currentCase.citation }}
+                                    </p>
+                                    <div class="flex flex-wrap gap-2 pt-1">
+                                        <a :href="buildScholarUrl(currentCase.paperQuery)" target="_blank" rel="noopener noreferrer"
+                                           class="px-3 py-1.5 rounded-lg bg-amber-600 text-white dark:bg-amber-500 dark:text-slate-950 text-xs font-kanit font-semibold hover:opacity-90 transition inline-flex items-center space-x-1">
+                                            <span>📖 Google Scholar</span>
+                                            <span>↗</span>
+                                        </a>
+                                        <a :href="buildYoutubeUrl(currentCase.videoQuery)" target="_blank" rel="noopener noreferrer"
+                                           class="px-3 py-1.5 rounded-lg app-card border border-gold-strong text-xs font-kanit text-main hover:border-amber-400 transition inline-flex items-center space-x-1">
+                                            <span>🎬 {{ lang === 'th' ? 'วิดีโอบรรยาย / สารคดี' : 'Lecture / Documentary' }}</span>
+                                            <span>↗</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else class="text-xs text-dim italic py-4 text-center">
+                                {{ lang === 'th' ? 'ลองตอบคำถามด้านบนก่อน หรือกดปุ่ม "เปิดอ่านคำอธิบายเต็ม" เพื่อดูการเชื่อมโยงทฤษฎีและนิติวิทยาศาสตร์ค่ะ' : 'Try answering the deduction check above, or click "Reveal Full Analysis" to view the professor’s breakdown.' }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =====================================================================
+                 TAB 2: ENCYCLOPEDIC THEORY & PAPER VAULT (คลังทฤษฎี & เปเปอร์อ้างอิง)
+                 ===================================================================== -->
+            <section v-if="activeTab === 'theories'" class="space-y-6">
+                <!-- Search & Filter Bar -->
+                <div class="app-card rounded-2xl p-6 border border-gold-soft space-y-4">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <span class="text-xs font-mono text-gold uppercase tracking-widest">ACADEMIC REPOSITORY • APA 7TH & LIVE LINKS</span>
+                            <h2 class="text-2xl sm:text-3xl font-kanit font-bold text-main mt-0.5">
+                                {{ lang === 'th' ? 'สารานุกรมทฤษฎีอาชญาวิทยา นิติวิทยาศาสตร์ และงานวิจัยต้นฉบับ' : 'Encyclopedia of Criminology, Forensic Principles & Seminal Papers' }}
+                            </h2>
+                        </div>
+                        <div class="text-xs font-mono text-dim">
+                            {{ lang === 'th' ? `แสดง ${filteredTheories.length} จาก ${theoriesData.length} รายการ` : `Showing ${filteredTheories.length} of ${theoriesData.length} entries` }}
+                        </div>
+                    </div>
+
+                    <!-- Search Input + School Filter Pills -->
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                        <div class="md:col-span-5 relative">
+                            <input v-model="searchQuery" type="text"
+                                   :placeholder="lang === 'th' ? 'ค้นหาชื่อทฤษฎี, นักทฤษฎี (เช่น Merton, Locard, Agnew), หรือคำสำคัญ...' : 'Search theory, theorist (e.g., Merton, Locard, Agnew), or keyword...'"
+                                   class="w-full pl-10 pr-4 py-2.5 rounded-xl app-surface border border-gold-soft text-sm text-main placeholder:text-dim focus:outline-none focus:border-gold-strong">
+                            <span class="absolute left-3.5 top-2.5 text-dim">🔎</span>
+                        </div>
+                        <div class="md:col-span-7 flex flex-wrap items-center gap-1.5">
+                            <button v-for="cat in theoryCategories" :key="cat.id"
+                                    @click="selectedCategory = cat.id"
+                                    :class="selectedCategory === cat.id
+                                        ? 'bg-amber-600 text-white dark:bg-amber-500 dark:text-slate-950 font-semibold'
+                                        : 'app-surface text-sub hover:text-main'"
+                                    class="px-3 py-1.5 rounded-xl border border-gold-soft text-xs font-kanit transition">
+                                {{ lang === 'th' ? cat.labelTh : cat.labelEn }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theory Cards Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <article v-for="item in filteredTheories" :key="item.id"
+                             class="app-card app-card-hover rounded-2xl p-6 border border-gold-soft flex flex-col justify-between space-y-5">
+                        <div class="space-y-3.5">
+                            <!-- Top Meta Badges -->
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <span class="px-2.5 py-1 rounded-lg bg-gold-soft text-gold border border-gold-soft text-xs font-kanit font-semibold">
+                                    {{ lang === 'th' ? item.schoolTh : item.schoolEn }}
+                                </span>
+                                <span class="text-xs font-mono text-dim">
+                                    {{ item.theorist }} ({{ item.year }})
+                                </span>
+                            </div>
+
+                            <!-- Title -->
+                            <div>
+                                <h3 class="text-xl font-kanit font-bold text-main">
+                                    {{ lang === 'th' ? item.nameTh : item.nameEn }}
+                                </h3>
+                                <p class="text-xs font-mono text-gold mt-0.5">
+                                    {{ lang === 'th' ? item.nameEn : item.nameTh }}
+                                </p>
+                            </div>
+
+                            <!-- Core Premise Box -->
+                            <div class="p-3.5 rounded-xl app-surface border-l-4 border-amber-500">
+                                <span class="text-[11px] font-mono uppercase tracking-wider text-gold font-bold block mb-1">
+                                    {{ lang === 'th' ? 'แก่นแนวคิดหลัก (Core Premise)' : 'Core Theoretical Premise' }}
+                                </span>
+                                <p class="text-sm text-main font-sarabun leading-relaxed">
+                                    {{ lang === 'th' ? item.coreTh : item.coreEn }}
+                                </p>
+                            </div>
+
+                            <!-- Deep Dive Explanation -->
+                            <p class="text-sm text-sub leading-relaxed font-sarabun">
+                                {{ lang === 'th' ? item.detailTh : item.detailEn }}
+                            </p>
+
+                            <!-- Real-World Application & Critique -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                                <div class="p-3 rounded-xl app-surface border border-gold-soft">
+                                    <span class="text-[11px] font-kanit font-bold text-cyan-accent block mb-1">
+                                        {{ lang === 'th' ? '📌 การประยุกต์ใช้จริง' : '📌 Real-World Application' }}
+                                    </span>
+                                    <p class="text-xs text-sub leading-relaxed">
+                                        {{ lang === 'th' ? item.applicationTh : item.applicationEn }}
+                                    </p>
+                                </div>
+                                <div class="p-3 rounded-xl app-surface border border-gold-soft">
+                                    <span class="text-[11px] font-kanit font-bold text-crimson-accent block mb-1">
+                                        {{ lang === 'th' ? '⚖️ ข้อวิพากษ์ทางวิชาการ' : '⚖️ Academic Critique' }}
+                                    </span>
+                                    <p class="text-xs text-sub leading-relaxed">
+                                        {{ lang === 'th' ? item.critiqueTh : item.critiqueEn }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Seminal Reference & Live External Links -->
+                        <div class="pt-4 border-t border-gold-soft space-y-3">
+                            <div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[11px] font-mono font-bold text-gold uppercase">
+                                        {{ lang === 'th' ? '📚 เปเปอร์อ้างอิงต้นฉบับ (APA 7th)' : '📚 Seminal Academic Citation (APA 7th)' }}
+                                    </span>
+                                    <button @click="copyCitation(item.citation)"
+                                            class="text-[11px] font-mono text-dim hover:text-gold underline">
+                                        {{ lang === 'th' ? 'คัดลอกอ้างอิง' : 'Copy APA' }}
+                                    </button>
+                                </div>
+                                <p class="text-xs font-mono text-dim mt-1 leading-relaxed break-words">
+                                    {{ item.citation }}
+                                </p>
+                            </div>
+
+                            <!-- Working External Action Links -->
+                            <div class="flex flex-wrap gap-2">
+                                <a :href="buildScholarUrl(item.paperQuery)" target="_blank" rel="noopener noreferrer"
+                                   class="px-3 py-1.5 rounded-lg bg-amber-600 text-white dark:bg-amber-500 dark:text-slate-950 text-xs font-kanit font-semibold hover:opacity-90 transition inline-flex items-center space-x-1">
+                                    <span>🎓 Google Scholar</span>
+                                    <span>↗</span>
+                                </a>
+                                <a :href="buildSemanticScholarUrl(item.paperQuery)" target="_blank" rel="noopener noreferrer"
+                                   class="px-3 py-1.5 rounded-lg app-surface border border-gold-soft text-xs font-kanit text-main hover:border-gold-strong transition inline-flex items-center space-x-1">
+                                    <span>📄 Semantic Scholar</span>
+                                    <span>↗</span>
+                                </a>
+                                <a v-if="item.doiUrl" :href="item.doiUrl" target="_blank" rel="noopener noreferrer"
+                                   class="px-3 py-1.5 rounded-lg app-surface border border-gold-soft text-xs font-mono text-cyan-accent hover:border-gold-strong transition inline-flex items-center space-x-1">
+                                    <span>🔗 DOI / Publisher</span>
+                                    <span>↗</span>
+                                </a>
+                                <a :href="buildYoutubeUrl(item.videoQuery)" target="_blank" rel="noopener noreferrer"
+                                   class="px-3 py-1.5 rounded-lg app-surface border border-gold-soft text-xs font-kanit text-crimson-accent hover:border-gold-strong transition inline-flex items-center space-x-1">
+                                    <span>▶️ {{ lang === 'th' ? 'คลิปอธิบาย' : 'Video Lecture' }}</span>
+                                    <span>↗</span>
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- =====================================================================
+                 TAB 3: INTERACTIVE CASE & THEORY ANALYZER (เครื่องมือตีความเคส)
+                 ===================================================================== -->
+            <section v-if="activeTab === 'analyzer'" class="space-y-6">
+                <div class="app-card rounded-2xl p-6 border border-gold-soft">
+                    <span class="text-xs font-mono text-gold uppercase tracking-widest">FORENSIC & CRIMINOLOGICAL WORKSTATION</span>
+                    <h2 class="text-2xl sm:text-3xl font-kanit font-bold text-main mt-1">
+                        {{ lang === 'th' ? 'ห้องปฏิบัติการวิเคราะห์พฤติกรรมอาชญากรรมและพยานหลักฐาน' : 'Interactive Case & Theoretical Synthesis Workstation' }}
+                    </h2>
+                    <p class="text-sm text-sub mt-1">
+                        {{ lang === 'th'
+                            ? 'เลือกตัวแปรของคดีที่พบ (แรงจูงใจ สภาพแวดล้อม พันธะทางสังคม และวัตถุพยาน) ระบบจะสังเคราะห์คำอธิบายทางทฤษฎีอาชญาวิทยา แนวทางตรวจพิสูจน์ทางนิติวิทยาศาสตร์ และรายการงานวิจัยที่ควรใช้อ้างอิงในการเขียนรายงาน'
+                            : 'Configure case variables (motive, environment, social bonds, and physical traces) to synthesize a professor-grade criminological diagnosis, forensic lab roadmap, and APA literature list.' }}
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Input Configurator (5 Cols) -->
+                    <div class="lg:col-span-5 app-card rounded-2xl p-6 border border-gold-soft space-y-5">
+                        <div>
+                            <label class="block text-xs font-mono font-bold text-gold uppercase mb-2">
+                                {{ lang === 'th' ? '1. เลือกสถานการณ์ตั้งต้น (Preset Scenarios)' : '1. Quick Preset Scenario' }}
+                            </label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button v-for="preset in analyzerPresets" :key="preset.id"
+                                        @click="applyAnalyzerPreset(preset)"
+                                        class="p-2.5 rounded-xl app-surface border border-gold-soft hover:border-gold-strong text-left text-xs font-kanit text-main transition">
+                                    {{ lang === 'th' ? preset.labelTh : preset.labelEn }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-mono font-bold text-gold uppercase mb-1.5">
+                                {{ lang === 'th' ? '2. แรงจูงใจและภาวะกดดัน (Motive & Strain)' : '2. Primary Motive & Strain Trigger' }}
+                            </label>
+                            <select v-model="analyzerForm.motive" class="w-full p-2.5 rounded-xl app-surface border border-gold-soft text-sm text-main">
+                                <option value="economic">{{ lang === 'th' ? 'ความกดดันทางเศรษฐกิจ / เป้าหมายความสำเร็จที่ไม่สมดุลกับโอกาส' : 'Economic Strain / Blocked Legitimate Opportunities' }}</option>
+                                <option value="rational">{{ lang === 'th' ? 'การคำนวณต้นทุน-ผลตอบแทนอย่างมีเหตุผล (คุ้มเสี่ยง)' : 'Calculated Cost-Benefit / Rational Profit' }}</option>
+                                <option value="peer">{{ lang === 'th' ? 'อิทธิพลกลุ่มเพื่อน / การเรียนรู้พฤติกรรมและเทคนิค' : 'Peer Group Influence / Learned Techniques & Definitions' }}</option>
+                                <option value="stigma">{{ lang === 'th' ? 'การถูกตีตราจากสังคมในอดีตจนเกิดอัตลักษณ์เบี่ยงเบน' : 'Prior Stigmatization / Secondary Deviance Identity' }}</option>
+                                <option value="impulse">{{ lang === 'th' ? 'ขาดการยับยั้งชั่งใจ / พันธะทางสังคมอ่อนแอ' : 'Low Self-Control / Weakened Social Bonds' }}</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-mono font-bold text-gold uppercase mb-1.5">
+                                {{ lang === 'th' ? '3. ลักษณะพื้นที่และโอกาส (Environmental Context)' : '3. Spatial & Environmental Context' }}
+                            </label>
+                            <select v-model="analyzerForm.environment" class="w-full p-2.5 rounded-xl app-surface border border-gold-soft text-sm text-main">
+                                <option value="unguarded">{{ lang === 'th' ? 'พื้นที่เปลี่ยว ขาดผู้ดูแล (Guardianship) และมีเหยื่อ/ทรัพย์สินจูงใจ' : 'Unguarded Space + Suitable Target + Motivated Offender' }}</option>
+                                <option value="disorder">{{ lang === 'th' ? 'ชุมชนเสื่อมโทรม มีร่องรอยความไม่เป็นระเบียบ (หน้าต่างแตก/กราฟฟิตี้)' : 'Urban Disorganization & Visible Physical Disorder' }}</option>
+                                <option value="corporate">{{ lang === 'th' ? 'องค์กรธุรกิจ / ระบบดิจิทัลที่มีช่องโหว่การตรวจสอบ' : 'Corporate / Digital System with Oversight Loopholes' }}</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-mono font-bold text-gold uppercase mb-1.5">
+                                {{ lang === 'th' ? '4. วัตถุพยานทางนิติวิทยาศาสตร์ที่พบ (Forensic Traces)' : '4. Primary Forensic Evidence Recovered' }}
+                            </label>
+                            <select v-model="analyzerForm.evidence" class="w-full p-2.5 rounded-xl app-surface border border-gold-soft text-sm text-main">
+                                <option value="biological">{{ lang === 'th' ? 'คราบเลือด / เนื้อเยื่อ / สารคัดหลั่ง (Biological & Blood Spatter)' : 'Bloodstain Patterns / Biological Fluids / Touch DNA' }}</option>
+                                <option value="digital">{{ lang === 'th' ? 'บันทึกการเข้าถึงระบบ / Metadata / ร่องรอยธุรกรรมดิจิทัล' : 'System Logs / Metadata / Digital Financial Footprints' }}</option>
+                                <option value="trace">{{ lang === 'th' ? 'เส้นใยผ้า / รอยรองเท้า / เศษกระจก / ดิน (Trace Materials)' : 'Fibers / Footwear Impressions / Glass Fragments / Soil' }}</option>
+                                <option value="toxicology">{{ lang === 'th' ? 'สารพิษ / ยาเสพติด / สารเคมีตกค้างในร่างกาย' : 'Toxicological Agents / Narcotics / Chemical Metabolites' }}</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-mono font-bold text-gold uppercase mb-1.5">
+                                {{ lang === 'th' ? '5. บันทึกข้อเท็จจริงเพิ่มเติมของคดี (ไม่บังคับ)' : '5. Custom Case Notes (Optional)' }}
+                            </label>
+                            <textarea v-model="analyzerForm.notes" rows="2"
+                                      :placeholder="lang === 'th' ? 'พิมพ์รายละเอียดคดีของคุณแพรที่นี่เพื่อรวมในรายงานสรุป...' : 'Enter specific case details to include in the synthesized brief...'"
+                                      class="w-full p-2.5 rounded-xl app-surface border border-gold-soft text-sm text-main placeholder:text-dim"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Synthesized Academic Report Output (7 Cols) -->
+                    <div class="lg:col-span-7 app-card rounded-2xl p-6 border border-gold-strong flex flex-col justify-between space-y-5">
+                        <div class="space-y-5">
+                            <div class="flex items-center justify-between border-b border-gold-soft pb-3">
+                                <div>
+                                    <span class="case-stamp">SYNTHESIZED BRIEF</span>
+                                    <h3 class="text-xl font-kanit font-bold text-main mt-2">
+                                        {{ lang === 'th' ? 'รายงานการสังเคราะห์ทฤษฎีและแนวทางนิติวิทยาศาสตร์' : 'Theoretical & Forensic Synthesis Report' }}
+                                    </h3>
+                                </div>
+                                <button @click="copyAnalyzerReport"
+                                        class="px-3.5 py-2 rounded-xl bg-amber-600 text-white dark:bg-amber-500 dark:text-slate-950 text-xs font-kanit font-semibold hover:opacity-90 transition">
+                                    {{ lang === 'th' ? '📋 คัดลอกรายงาน' : '📋 Copy Report' }}
+                                </button>
+                            </div>
+
+                            <div v-if="analyzerForm.notes" class="p-3.5 rounded-xl app-surface border border-gold-soft">
+                                <span class="text-xs font-mono font-bold text-gold block">CASE SUMMARY INPUT:</span>
+                                <p class="text-sm text-main mt-1">{{ analyzerForm.notes }}</p>
+                            </div>
+
+                            <!-- Primary Criminological Diagnosis -->
+                            <div class="space-y-2">
+                                <span class="text-xs font-mono font-bold text-gold uppercase">
+                                    {{ lang === 'th' ? 'I. การอธิบายสาเหตุอาชญากรรม (Etiological Explanation)' : 'I. Criminological Etiology' }}
+                                </span>
+                                <div class="p-4 rounded-xl app-surface border border-gold-soft space-y-2">
+                                    <h4 class="font-kanit font-bold text-base text-main">
+                                        {{ lang === 'th' ? synthesizedResult.motiveTheory.titleTh : synthesizedResult.motiveTheory.titleEn }}
+                                    </h4>
+                                    <p class="text-sm text-sub leading-relaxed">
+                                        {{ lang === 'th' ? synthesizedResult.motiveTheory.descTh : synthesizedResult.motiveTheory.descEn }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Situational / Environmental Lens -->
+                            <div class="space-y-2">
+                                <span class="text-xs font-mono font-bold text-cyan-accent uppercase">
+                                    {{ lang === 'th' ? 'II. ปัจจัยเชิงพื้นที่และโอกาส (Environmental & Situational Lens)' : 'II. Environmental & Situational Lens' }}
+                                </span>
+                                <div class="p-4 rounded-xl app-surface border border-gold-soft space-y-2">
+                                    <h4 class="font-kanit font-bold text-base text-main">
+                                        {{ lang === 'th' ? synthesizedResult.envTheory.titleTh : synthesizedResult.envTheory.titleEn }}
+                                    </h4>
+                                    <p class="text-sm text-sub leading-relaxed">
+                                        {{ lang === 'th' ? synthesizedResult.envTheory.descTh : synthesizedResult.envTheory.descEn }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Forensic Science Protocol -->
+                            <div class="space-y-2">
+                                <span class="text-xs font-mono font-bold text-crimson-accent uppercase">
+                                    {{ lang === 'th' ? 'III. ระเบียบวิธีตรวจพิสูจน์ทางนิติวิทยาศาสตร์ (Forensic Lab Protocol)' : 'III. Forensic Laboratory Protocol' }}
+                                </span>
+                                <div class="p-4 rounded-xl app-surface border border-gold-soft space-y-2">
+                                    <h4 class="font-kanit font-bold text-base text-main">
+                                        {{ lang === 'th' ? synthesizedResult.forensicProtocol.titleTh : synthesizedResult.forensicProtocol.titleEn }}
+                                    </h4>
+                                    <p class="text-sm text-sub leading-relaxed">
+                                        {{ lang === 'th' ? synthesizedResult.forensicProtocol.descTh : synthesizedResult.forensicProtocol.descEn }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recommended Scholar Links for Report -->
+                        <div class="pt-4 border-t border-gold-soft flex flex-wrap items-center justify-between gap-2">
+                            <span class="text-xs font-mono text-dim">
+                                {{ lang === 'th' ? 'ค้นคว้าเปเปอร์ประกอบรายงานนี้:' : 'Explore supporting papers:' }}
+                            </span>
+                            <div class="flex flex-wrap gap-2">
+                                <a :href="buildScholarUrl(synthesizedResult.scholarQuery)" target="_blank" rel="noopener noreferrer"
+                                   class="px-3 py-1.5 rounded-lg bg-gold-soft border border-gold-strong text-xs font-kanit text-gold font-semibold">
+                                    🎓 {{ lang === 'th' ? 'เปิด Google Scholar ที่ตรงกับเคสนี้ ↗' : 'Open Matching Scholar Search ↗' }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =====================================================================
+                 TAB 4: INTERACTIVE THEORY NETWORK / EVIDENCE BOARD (ผังสายสัมพันธ์)
+                 ===================================================================== -->
+            <section v-if="activeTab === 'network'" class="space-y-6">
+                <div class="app-card rounded-2xl p-6 border border-gold-soft flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <span class="text-xs font-mono text-gold uppercase tracking-widest">DETECTIVE STRING BOARD • GENEALOGY OF IDEAS</span>
+                        <h2 class="text-2xl sm:text-3xl font-kanit font-bold text-main mt-0.5">
+                            {{ lang === 'th' ? 'กระดานโยงใยวิวัฒนาการทฤษฎีอาชญาวิทยาและนิติวิทยาศาสตร์' : 'Interactive Theory Genealogy & Red-String Evidence Board' }}
+                        </h2>
+                        <p class="text-sm text-sub mt-1">
+                            {{ lang === 'th'
+                                ? 'คลิกที่หมุดทฤษฎีใดก็ได้บนกระดานเพื่อดูเส้นเชือกสีแดงที่เชื่อมโยงอิทธิพลทางความคิด การต่อยอด และการเชื่อมเข้ากับงานพิสูจน์หลักฐาน'
+                                : 'Click any pinned node on the board to illuminate red-string intellectual lineages, theoretical extensions, and forensic intersections.' }}
+                        </p>
+                    </div>
+                    <div class="text-xs font-mono px-3 py-1.5 rounded-xl app-surface border border-gold-soft text-gold">
+                        {{ lang === 'th' ? 'คลิกโหนดเพื่อดูความเชื่อมโยง' : 'Click a node to inspect links' }}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Interactive SVG Evidence Board (8 Cols) -->
+                    <div class="lg:col-span-8 app-card rounded-2xl p-3 sm:p-4 border border-gold-soft overflow-hidden">
+                        <div class="w-full overflow-x-auto">
+                            <svg viewBox="0 0 760 470" class="w-full min-w-[620px] h-auto rounded-xl bg-slate-950/90 border border-slate-800">
+                                <!-- Subtle Grid Background -->
+                                <defs>
+                                    <pattern id="boardGrid" width="30" height="30" patternUnits="userSpaceOnUse">
+                                        <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#1e293b" stroke-width="0.8"/>
+                                    </pattern>
+                                </defs>
+                                <rect width="760" height="470" fill="url(#boardGrid)"/>
+
+                                <!-- Era Column Labels -->
+                                <text x="95" y="28" fill="#94a3b8" font-family="monospace" font-size="11" text-anchor="middle">CLASSICAL & POSITIVIST</text>
+                                <text x="310" y="28" fill="#94a3b8" font-family="monospace" font-size="11" text-anchor="middle">STRUCTURAL & STRAIN</text>
+                                <text x="520" y="28" fill="#94a3b8" font-family="monospace" font-size="11" text-anchor="middle">PROCESS & CRITICAL</text>
+                                <text x="680" y="28" fill="#22d3ee" font-family="monospace" font-size="11" text-anchor="middle">FORENSIC BRIDGE</text>
+
+                                <!-- Red-String Edges -->
+                                <g v-for="(edge, idx) in networkEdges" :key="idx">
+                                    <line :x1="getNode(edge.from).x" :y1="getNode(edge.from).y"
+                                          :x2="getNode(edge.to).x" :y2="getNode(edge.to).y"
+                                          :stroke="isEdgeHighlighted(edge) ? '#f43f5e' : '#475569'"
+                                          :stroke-width="isEdgeHighlighted(edge) ? 3 : 1.4"
+                                          :stroke-dasharray="edge.dashed ? '5 4' : 'none'"
+                                          :class="isEdgeHighlighted(edge) ? 'red-string-active' : ''"/>
+                                </g>
+
+                                <!-- Pinned Nodes -->
+                                <g v-for="node in networkNodes" :key="node.id"
+                                   @click="selectedNodeId = node.id"
+                                   class="cursor-pointer transition-transform">
+                                    <!-- Card Rect -->
+                                    <rect :x="node.x - 68" :y="node.y - 26" width="136" height="52" rx="8"
+                                          :fill="selectedNodeId === node.id ? '#e5b869' : (isNodeConnected(node.id) ? '#1e293b' : '#0f172a')"
+                                          :stroke="selectedNodeId === node.id ? '#fff' : (isNodeConnected(node.id) ? '#f43f5e' : '#334155')"
+                                          :stroke-width="selectedNodeId === node.id ? 2.5 : 1.5"/>
+                                    <!-- Red Pin Dot -->
+                                    <circle :cx="node.x" :cy="node.y - 26" r="4.5" fill="#f43f5e" stroke="#0f172a" stroke-width="1.2"/>
+                                    <!-- Node Title -->
+                                    <text :x="node.x" :y="node.y - 4"
+                                          :fill="selectedNodeId === node.id ? '#090d16' : '#f8fafc'"
+                                          font-family="Kanit, sans-serif" font-size="11.5" font-weight="600" text-anchor="middle">
+                                        {{ lang === 'th' ? node.shortTh : node.shortEn }}
+                                    </text>
+                                    <!-- Theorist Subtitle -->
+                                    <text :x="node.x" :y="node.y + 13"
+                                          :fill="selectedNodeId === node.id ? '#1e293b' : '#94a3b8'"
+                                          font-family="monospace" font-size="9.5" text-anchor="middle">
+                                        {{ node.sub }}
+                                    </text>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Selected Node Inspector (4 Cols) -->
+                    <div class="lg:col-span-4 app-card rounded-2xl p-6 border border-gold-strong flex flex-col justify-between space-y-4">
+                        <div v-if="activeNetworkNode" class="space-y-4">
+                            <div>
+                                <span class="case-stamp">PINNED DOSSIER</span>
+                                <h3 class="text-xl font-kanit font-bold text-main mt-2">
+                                    {{ lang === 'th' ? activeNetworkNode.titleTh : activeNetworkNode.titleEn }}
+                                </h3>
+                                <p class="text-xs font-mono text-gold mt-0.5">{{ activeNetworkNode.sub }}</p>
+                            </div>
+
+                            <p class="text-sm text-sub leading-relaxed">
+                                {{ lang === 'th' ? activeNetworkNode.summaryTh : activeNetworkNode.summaryEn }}
+                            </p>
+
+                            <div class="p-3.5 rounded-xl app-surface border border-gold-soft space-y-2">
+                                <span class="text-xs font-mono font-bold text-crimson-accent block">
+                                    {{ lang === 'th' ? '🧵 เส้นเชือกความเชื่อมโยง (Connected Theories):' : '🧵 Connected Intellectual Lineages:' }}
+                                </span>
+                                <ul class="space-y-1.5">
+                                    <li v-for="conn in activeNodeConnections" :key="conn.id"
+                                        @click="selectedNodeId = conn.id"
+                                        class="text-xs text-main hover:text-gold cursor-pointer flex items-center space-x-1.5">
+                                        <span>•</span>
+                                        <span class="underline">{{ lang === 'th' ? conn.titleTh : conn.titleEn }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-t border-gold-soft">
+                            <a :href="buildScholarUrl(activeNetworkNode.paperQuery)" target="_blank" rel="noopener noreferrer"
+                               class="w-full py-2.5 px-4 rounded-xl bg-amber-600 text-white dark:bg-amber-500 dark:text-slate-950 text-xs font-kanit font-semibold text-center block hover:opacity-90 transition">
+                                {{ lang === 'th' ? '📖 ค้นเปเปอร์ต้นฉบับบน Google Scholar ↗' : '📖 Search Original Paper on Google Scholar ↗' }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =====================================================================
+                 TAB 5: 3D EXAM FLASHCARDS & SELF-TEST (การ์ดสรุปเตรียมสอบ)
+                 ===================================================================== -->
+            <section v-if="activeTab === 'flashcards'" class="space-y-6">
+                <div class="app-card rounded-2xl p-6 border border-gold-soft flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <span class="text-xs font-mono text-gold uppercase tracking-widest">ACTIVE RECALL • EXAM PREPARATION</span>
+                        <h2 class="text-2xl sm:text-3xl font-kanit font-bold text-main mt-0.5">
+                            {{ lang === 'th' ? 'แฟลชการ์ด 3 มิติทบทวนก่อนสอบ (อาชญาวิทยา & นิติวิทย์)' : '3D Active-Recall Exam Flashcards' }}
+                        </h2>
+                        <p class="text-sm text-sub mt-1">
+                            {{ lang === 'th' ? 'คลิกที่การ์ดเพื่อพลิกดูคำอธิบายเชิงลึก นักทฤษฎี และจุดสังเกตสำคัญในข้อสอบ' : 'Click the card to flip and reveal key theorists, definitions, and exam tips.' }}
+                        </p>
+                    </div>
+
+                    <!-- Mastery Counter -->
+                    <div class="flex items-center space-x-3">
+                        <div class="px-4 py-2 rounded-xl app-surface border border-gold-soft text-center">
+                            <span class="text-xs font-mono text-dim block">{{ lang === 'th' ? 'จำได้แม่นแล้ว' : 'MASTERED' }}</span>
+                            <span class="text-lg font-mono font-bold text-emerald-400">{{ masteredCards.length }} / {{ flashcardsData.length }}</span>
+                        </div>
+                        <button @click="resetFlashcards" class="px-3 py-2 rounded-xl app-surface border border-gold-soft text-xs font-kanit text-sub hover:text-main">
+                            {{ lang === 'th' ? 'รีเซ็ต' : 'Reset' }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Flashcard Stage -->
+                <div class="max-w-2xl mx-auto space-y-5">
+                    <div class="flex items-center justify-between text-xs font-mono text-dim px-1">
+                        <span>CARD {{ currentCardIndex + 1 }} OF {{ flashcardsData.length }}</span>
+                        <span class="text-gold">{{ lang === 'th' ? currentFlashcard.categoryTh : currentFlashcard.categoryEn }}</span>
+                    </div>
+
+                    <!-- 3D Flip Card -->
+                    <div class="perspective-1000 h-80 sm:h-88 cursor-pointer" @click="isCardFlipped = !isCardFlipped">
+                        <div :class="{ 'rotate-y-180': isCardFlipped }" class="relative w-full h-full transform-style-3d">
+                            <!-- Front Face -->
+                            <div class="absolute inset-0 backface-hidden app-card rounded-3xl p-8 border-2 border-gold-strong flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="case-stamp">QUESTION / CONCEPT</span>
+                                    <span class="text-xs font-mono text-dim">{{ lang === 'th' ? 'แตะเพื่อพลิกการ์ด ↻' : 'Tap to flip ↻' }}</span>
+                                </div>
+                                <div class="text-center my-auto px-2">
+                                    <h3 class="text-xl sm:text-2xl font-kanit font-bold text-main leading-snug">
+                                        {{ lang === 'th' ? currentFlashcard.frontTh : currentFlashcard.frontEn }}
+                                    </h3>
+                                    <p class="text-xs font-mono text-gold mt-3">
+                                        {{ lang === 'th' ? currentFlashcard.frontEn : currentFlashcard.frontTh }}
+                                    </p>
+                                </div>
+                                <div class="text-center text-xs text-dim font-sarabun">
+                                    {{ lang === 'th' ? 'ลองนึกชื่อนักทฤษฎีและแก่นแนวคิดในใจก่อนพลิกดูเฉลยนะคะ' : 'Recall the theorist and core mechanism before flipping.' }}
+                                </div>
+                            </div>
+
+                            <!-- Back Face -->
+                            <div class="absolute inset-0 backface-hidden rotate-y-180 app-card rounded-3xl p-8 border-2 border-cyan-500/60 flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-mono font-bold text-cyan-accent uppercase">VERIFIED ANSWER</span>
+                                    <span class="text-xs font-mono text-gold">{{ currentFlashcard.theorist }}</span>
+                                </div>
+                                <div class="my-auto space-y-3">
+                                    <p class="text-sm sm:text-base text-main font-sarabun leading-relaxed">
+                                        {{ lang === 'th' ? currentFlashcard.backTh : currentFlashcard.backEn }}
+                                    </p>
+                                    <div class="p-3 rounded-xl app-surface border border-gold-soft">
+                                        <span class="text-[11px] font-kanit font-bold text-gold block">
+                                            {{ lang === 'th' ? '💡 ทริคจำเข้าห้องสอบ:' : '💡 Exam Memory Hook:' }}
+                                        </span>
+                                        <p class="text-xs text-sub mt-0.5">
+                                            {{ lang === 'th' ? currentFlashcard.tipTh : currentFlashcard.tipEn }}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="text-center text-xs font-mono text-dim">
+                                    {{ lang === 'th' ? 'แตะอีกครั้งเพื่อกลับด้านหน้า' : 'Tap again to flip back' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Controls -->
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <button @click="prevCard" class="px-4 py-2.5 rounded-xl app-card border border-gold-soft text-sm font-kanit text-main hover:border-gold-strong">
+                            ← {{ lang === 'th' ? 'ใบก่อนหน้า' : 'Previous' }}
+                        </button>
+
+                        <button @click="toggleMastered(currentFlashcard.id)"
+                                :class="masteredCards.includes(currentFlashcard.id)
+                                    ? 'bg-emerald-600 text-white border-emerald-500'
+                                    : 'app-card border-gold-strong text-gold'"
+                                class="px-5 py-2.5 rounded-xl border text-sm font-kanit font-semibold transition">
+                            {{ masteredCards.includes(currentFlashcard.id)
+                                ? (lang === 'th' ? '✅ จำแม่นแล้ว (คลิกเพื่อยกเลิก)' : '✅ Mastered')
+                                : (lang === 'th' ? '⭐ ทำเครื่องหมายว่าจำได้แล้ว' : '⭐ Mark as Mastered') }}
+                        </button>
+
+                        <button @click="nextCard" class="px-4 py-2.5 rounded-xl app-card border border-gold-soft text-sm font-kanit text-main hover:border-gold-strong">
+                            {{ lang === 'th' ? 'ใบถัดไป' : 'Next' }} →
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="border-t border-gold-soft app-surface/80 py-5 mt-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-dim">
+                <p class="font-kanit">
+                    CRIMINO-DEX • {{ lang === 'th' ? 'จัดทำขึ้นเป็นพิเศษสำหรับคุณแพร เพื่อการเรียนรู้ด้านอาชญาวิทยาและนิติวิทยาศาสตร์อย่างมีความสุข' : 'Curated specifically for Prae — Criminology & Forensic Science Academic Suite' }}
+                </p>
+                <p class="font-mono">
+                    APA 7TH VERIFIED • BILINGUAL TH/EN • WEB AUDIO AMBIENCE
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                // Global UI State
+                const lang = ref('th');
+                const isDark = ref(true);
+                const activeTab = ref('cases');
+                const toastMessage = ref('');
+                const isPlayingAudio = ref(false);
+                let audioCtx = null;
+                let rainNode = null;
+
+                // Navigation Tabs
+                const navTabs = [
+                    { id: 'cases', icon: '🕵️‍♀️', labelTh: 'แฟ้มคดีสืบสวน', labelEn: 'Case Files' },
+                    { id: 'theories', icon: '📚', labelTh: 'คลังทฤษฎี & เปเปอร์', labelEn: 'Theory & Papers' },
+                    { id: 'analyzer', icon: '🔬', labelTh: 'เครื่องมือตีความเคส', labelEn: 'Case Analyzer' },
+                    { id: 'network', icon: '🕸️', labelTh: 'ผังสายสัมพันธ์', labelEn: 'Theory Board' },
+                    { id: 'flashcards', icon: '🗂️', labelTh: 'การ์ดสรุปเตรียมสอบ', labelEn: 'Flashcards' }
+                ];
+
+                const showToast = (msg) => {
+                    toastMessage.value = msg;
+                    setTimeout(() => { toastMessage.value = ''; }, 3000);
+                };
+
+                const toggleLang = () => {
+                    lang.value = lang.value === 'th' ? 'en' : 'th';
+                    showToast(lang.value === 'th' ? 'เปลี่ยนเป็นภาษาไทยเรียบร้อยค่ะ' : 'Switched to English');
+                };
+
+                const toggleTheme = () => {
+                    isDark.value = !isDark.value;
+                    if (isDark.value) {
+                        document.documentElement.classList.remove('theme-light');
+                    } else {
+                        document.documentElement.classList.add('theme-light');
+                    }
+                };
+
+                // Ambient Rain Sound Generator (Pure Web Audio API - Zero external audio URLs)
+                const toggleAudio = () => {
+                    if (isPlayingAudio.value) {
+                        if (audioCtx) {
+                            audioCtx.close();
+                            audioCtx = null;
+                        }
+                        isPlayingAudio.value = false;
+                        return;
+                    }
+                    try {
+                        const AudioContext = window.AudioContext || window.webkitAudioContext;
+                        audioCtx = new AudioContext();
+                        const bufferSize = 2 * audioCtx.sampleRate;
+                        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                        const output = noiseBuffer.getChannelData(0);
+                        let lastOut = 0.0;
+                        for (let i = 0; i < bufferSize; i++) {
+                            const white = Math.random() * 2 - 1;
+                            output[i] = (lastOut + (0.02 * white)) / 1.02; // Brown/soft rain noise
+                            lastOut = output[i];
+                            output[i] *= 0.18;
+                        }
+                        rainNode = audioCtx.createBufferSource();
+                        rainNode.buffer = noiseBuffer;
+                        rainNode.loop = true;
+
+                        const filter = audioCtx.createBiquadFilter();
+                        filter.type = 'lowpass';
+                        filter.frequency.value = 650;
+
+                        rainNode.connect(filter);
+                        filter.connect(audioCtx.destination);
+                        rainNode.start(0);
+                        isPlayingAudio.value = true;
+                        showToast(lang.value === 'th' ? 'เปิดเสียงฝนตกเบาๆ บรรยากาศห้องสืบสวนค่ะ 🌧️' : 'Noir rain ambience enabled 🌧️');
+                    } catch (e) {
+                        showToast('Audio unavailable in this browser');
+                    }
+                };
+
+                // Helper URL Builders for Authentic Papers & Videos
+                const buildScholarUrl = (q) => `https://scholar.google.com/scholar?q=${encodeURIComponent(q)}`;
+                const buildSemanticScholarUrl = (q) => `https://www.semanticscholar.org/search?q=${encodeURIComponent(q)}`;
+                const buildYoutubeUrl = (q) => `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
+
+                const copyCitation = (text) => {
+                    const el = document.createElement('textarea');
+                    el.value = text;
+                    document.body.appendChild(el);
+                    el.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(el);
+                    showToast(lang.value === 'th' ? 'คัดลอกบรรณานุกรม APA 7th แล้วค่ะ!' : 'APA 7th Citation copied!');
+                };
+
+                // =====================================================================
+                // DATA 1: INVESTIGATIVE CASE FILES (เรื่องสั้นสืบสวน + การวิเคราะห์)
+                // =====================================================================
+                const casesData = [
+                    {
+                        id: 'case-strain',
+                        code: 'CASE #01-STR',
+                        shortTitleTh: 'ร้านสะดวกซื้อตีสอง',
+                        shortTitleEn: '02:47 AM Convenience Heist',
+                        genreTh: 'อาชญากรรมทรัพย์สิน & ความกดดันทางสังคม',
+                        genreEn: 'Property Crime & Structural Strain',
+                        location: 'DISTRICT 4 // RAINY ALLEY',
+                        titleTh: 'คดีที่ 01: เงาใต้แสงไฟนีออนร้านสะดวกซื้อ 02:47 น.',
+                        titleEn: 'Case 01: Neon Shadows at the 02:47 AM Convenience Store',
+                        acts: [
+                            {
+                                timestamp: '02:15 AM',
+                                headingTh: 'แรงกดดันที่สะสม',
+                                headingEn: 'Accumulated Pressure',
+                                storyTh: '“กรณ์” วัย 22 ปี ถูกเลิกจ้างจากโรงงานชิ้นส่วนยานยนต์เป็นเดือนที่สาม ใบแจ้งหนี้ค่ารักษาพยาบาลของแม่วางซ้อนอยู่บนโต๊ะเช่าห้องแคบๆ ขณะที่หน้าจอโทรศัพท์ของเขาเต็มไปด้วยโฆษณาความสำเร็จและสินค้าหรูหราที่สังคมยกย่องว่าเป็นนิยามของ “ผู้ชนะ”',
+                                storyEn: 'Korn, 22, has been laid off from an auto-parts factory for three months. His mother’s medical bills pile up on a cramped desk while his phone screen displays relentless ads equating material wealth with social worth.',
+                                clueTh: 'ผู้ต้องหามีเป้าหมายความสำเร็จแบบกระแสหลัก แต่ช่องทางที่ถูกกฎหมาย (Institutional Means) ถูกปิดกั้น',
+                                clueEn: 'The subject internalizes mainstream success goals while legitimate institutional avenues are blocked.'
+                            },
+                            {
+                                timestamp: '02:47 AM',
+                                headingTh: 'จังหวะที่ไร้ผู้เฝ้าระวัง',
+                                headingEn: 'Absence of Capable Guardianship',
+                                storyTh: 'คืนฝนตกหนัก กล้องวงจรปิดหน้าร้านสะดวกซื้อซอยเปลี่ยวเสียมาสองสัปดาห์ พนักงานกะดึกกำลังจัดของอยู่หลังร้านเพียงลำพัง กรณ์สวมเสื้อฮู้ดเดินเข้าไปหยิบเงินสดในลิ้นชักและรีบวิ่งหายไปในความมืดโดยไม่ได้ทำร้ายใคร',
+                                storyEn: 'During a heavy downpour, the street-facing CCTV has been broken for two weeks, and the lone night clerk is restocking in the back room. Korn enters, empties the register, and flees without harming anyone.',
+                                clueTh: 'การบรรจบกันของผู้มีแรงจูงใจ เป้าหมายที่เหมาะสม และการขาดผู้ดูแลยับยั้ง (Capable Guardian)',
+                                clueEn: 'Convergence of a motivated offender, suitable target, and absence of a capable guardian.'
+                            },
+                            {
+                                timestamp: '04:10 AM',
+                                headingTh: 'ร่องรอยที่ถูกทิ้งไว้',
+                                headingEn: 'Microscopic Exchange',
+                                storyTh: 'ทีมพิสูจน์หลักฐานตรวจพบเส้นใยผ้าฝ้ายสีเทาเข้มติดอยู่ที่ขอบบานพับประตูอะลูมิเนียม และรอยรองเท้าผ้าใบที่ย่ำลงบนคราบน้ำโคลนหน้าเคาน์เตอร์ ซึ่งตรงกับรองเท้าในห้องพักของกรณ์อย่างสมบูรณ์',
+                                storyEn: 'Forensic technicians recover dark gray cotton fibers snagged on the aluminum door hinge and a muddy sneaker impression matching shoes found in Korn’s apartment.',
+                                clueTh: 'การแลกเปลี่ยนร่องรอยทางกายภาพเมื่อวัตถุสองสิ่งสัมผัสกัน (Trace Evidence Transfer)',
+                                clueEn: 'Physical trace exchange whenever two surfaces come into contact.'
+                            }
+                        ],
+                        questionTh: 'จากพฤติกรรมของ “กรณ์” ในฉากที่ 1 และ 2 คู่ทฤษฎีใดอธิบายปรากฏการณ์นี้ได้ครอบคลุมที่สุดทั้งมิติโครงสร้างสังคมและมิติสถานการณ์?',
+                        questionEn: 'Based on Acts 1 and 2, which theoretical pairing best explains both the structural root and situational trigger of Korn’s offense?',
+                        options: [
+                            {
+                                labelTh: 'A. ทฤษฎีความกดดัน (Merton’s Strain Theory - Innovation) + ทฤษฎีกิจวัตรประจำวัน (Routine Activity Theory)',
+                                labelEn: 'A. Merton’s Strain Theory (Innovation) + Cohen & Felson’s Routine Activity Theory',
+                                isCorrect: true,
+                                feedbackTh: 'ถูกต้องค่ะ! กรณ์ยอมรับเป้าหมายความสำเร็จทางเศรษฐกิจของสังคม แต่ขาดช่องทางที่ถูกกฎหมายจึงเลือกวิธี "นวัตกรรม (Innovation)" คือการลักทรัพย์ และลงมือเมื่อมีองค์ประกอบ 3 ประการครบตาม Routine Activity Theory',
+                                feedbackEn: 'Correct! Korn accepts cultural wealth goals but lacks legitimate means, adapting via "Innovation" (theft), triggered when the three Routine Activity elements converge.'
+                            },
+                            {
+                                labelTh: 'B. ทฤษฎีอาชญากรโดยกำเนิด (Lombroso’s Atavism) + ทฤษฎีการตีตรา (Labeling Theory)',
+                                labelEn: 'B. Lombroso’s Biological Atavism + Becker’s Labeling Theory',
+                                isCorrect: false,
+                                feedbackTh: 'ยังไม่ตรงจุดค่ะ คดีนี้ไม่พบลักษณะทางชีวภาพแต่กำเนิดหรือการตีตราซ้ำซ้อนในอดีต แต่เกิดจากแรงกดดันทางเศรษฐกิจและช่องว่างการเฝ้าระวังในพื้นที่',
+                                feedbackEn: 'Not quite. There is no biological determinism or prior official labeling here; the catalyst is economic strain combined with situational opportunity.'
+                            },
+                            {
+                                labelTh: 'C. ทฤษฎีความไม่เป็นระเบียบของสังคม (Social Disorganization) + นิติพิษวิทยา (Forensic Toxicology)',
+                                labelEn: 'C. Social Disorganization Theory + Forensic Toxicology',
+                                isCorrect: false,
+                                feedbackTh: 'ยังไม่ครอบคลุมค่ะ แม้ซอยจะเปลี่ยว แต่แรงขับหลักมาจากความกดดันส่วนบุคคลและสภาพแวดล้อมที่ขาดผู้ดูแล ส่วนหลักฐานที่พบเป็นเส้นใยและรอยเท้า (Trace Evidence) ไม่ใช่สารพิษ',
+                                feedbackEn: 'Not quite. The primary driver is individual economic strain plus lack of guardianship, and the forensic evidence is physical trace material rather than toxicology.'
+                            }
+                        ],
+                        criminologyAnalysisTh: 'ตามทฤษฎี Strain Theory ของ Robert K. Merton (1938) เมื่อสังคมให้คุณค่ากับความมั่งคั่งแต่ปิดกั้นโอกาสการเข้าถึง กรณ์จึงเกิดสภาวะ Anomie และปรับตัวแบบ "Innovation" (ยอมรับเป้าหมาย แต่ใช้วิธีผิดกฎหมาย) ขณะเดียวกัน Cohen & Felson (1979) อธิบายผ่าน Routine Activity Theory ว่าอาชญากรรมเกิดขึ้นได้จริงเพราะ 3 ปัจจัยมาบรรจบกัน: (1) ผู้มีแรงจูงใจ (กรณ์) (2) เป้าหมายที่เหมาะสม (เงินสดในร้าน) และ (3) การขาดผู้พิทักษ์ที่สามารถยับยั้งได้ (กล้องเสียและพนักงานอยู่หลังร้าน)',
+                        criminologyAnalysisEn: 'Under Robert K. Merton’s (1938) Strain Theory, when society emphasizes monetary goals without equal institutional means, individuals experience anomie and may adapt via "Innovation." Simultaneously, Cohen & Felson’s (1979) Routine Activity Theory explains the timing: a motivated offender converged with a suitable target in the absence of a capable guardian.',
+                        forensicAnalysisTh: 'ใช้หลักการแลกเปลี่ยนของโลการ์ด (Locard’s Exchange Principle): "ทุกการสัมผัสย่อมทิ้งร่องรอย" เส้นใยผ้าฝ้ายบนบานพับประตูและรอยพื้นรองเท้า (Footwear Impression) ถูกเก็บด้วยเทคนิค Tape Lifting และ Casting เพื่อเปรียบเทียบภายใต้กล้องจุลทรรศน์เปรียบเทียบ (Comparison Microscope)',
+                        forensicAnalysisEn: 'Governed by Locard’s Exchange Principle ("Every contact leaves a trace"), cotton fibers on the door hinge and footwear impressions in mud were recovered via tape lifting and dental-stone casting for comparison microscopy.',
+                        citation: 'Merton, R. K. (1938). Social structure and anomie. American Sociological Review, 3(5), 672–682. & Cohen, L. E., & Felson, M. (1979). Social change and crime rate trends: A routine activity approach. American Sociological Review, 44(4), 588–608.',
+                        paperQuery: 'Merton 1938 Social structure and anomie Routine Activity Theory',
+                        videoQuery: 'Merton Strain Theory Routine Activity Theory Criminology lecture'
+                    },
+                    {
+                        id: 'case-whitecollar',
+                        code: 'CASE #02-WCC',
+                        shortTitleTh: 'บัญชีลับตึกระฟ้า',
+                        shortTitleEn: 'Penthouse Ledger Fraud',
+                        genreTh: 'อาชญากรรมคอปกขาว & นิติคอมพิวเตอร์',
+                        genreEn: 'White-Collar Crime & Digital Forensics',
+                        location: 'FINANCIAL TOWER // FLOOR 42',
+                        titleTh: 'คดีที่ 02: ตัวเลขล่องหนบนชั้น 42 ของตึกการเงิน',
+                        titleEn: 'Case 02: Phantom Ledgers on Floor 42',
+                        acts: [
+                            {
+                                timestamp: '18:30 PM',
+                                headingTh: 'วัฒนธรรมองค์กรที่บิดเบี้ยว',
+                                headingEn: 'Normalized Corporate Deviance',
+                                storyTh: '“ดร.วิชญ์” ผู้อำนวยการฝ่ายการเงินที่มีชื่อเสียงและสถานะทางสังคมสูง ถูกชักชวนโดยรุ่นพี่ในบอร์ดบริหารให้ตกแต่งบัญชีเพื่อพยุงราคาหุ้น รุ่นพี่บอกเขาว่า “ใครๆ ในวงการก็ทำกัน นี่ไม่ใช่การขโมย แต่คือการบริหารสภาพคล่องชั่วคราว”',
+                                storyEn: 'Dr. Wich, a respected CFO with high social standing, is mentored by senior board members to falsify quarterly ledgers. They tell him, "Everyone in finance does this—it’s not theft, just temporary liquidity management."',
+                                clueTh: 'การเรียนรู้เทคนิคและชุดเหตุผลสร้างความชอบธรรม (Definitions Favorable to Law Violation) จากคนใกล้ชิดในวิชาชีพ',
+                                clueEn: 'Learning specialized techniques and rationalizations favorable to law violation within an intimate professional group.'
+                            },
+                            {
+                                timestamp: '23:10 PM',
+                                headingTh: 'การทำลายร่องรอยดิจิทัล',
+                                headingEn: 'Sanitizing the Audit Trail',
+                                storyTh: 'เมื่อทราบว่าผู้ตรวจสอบอิสระจะเข้าตรวจในเช้าวันรุ่งขึ้น วิชญ์สั่งลบไฟล์ตารางบัญชีลับออกจากเซิร์ฟเวอร์และทำลายเอกสารกระดาษลงเครื่องย่อย โดยเชื่อมั่นว่าตำแหน่งทางสังคมของตนจะทำให้ไม่มีใครกล้าสงสัย',
+                                storyEn: 'Upon learning of an external audit the next morning, Wich deletes the shadow spreadsheets from the server and shreds printed memos, confident his elite status shields him from suspicion.',
+                                clueTh: 'อาชญากรรมที่กระทำโดยบุคคลผู้มีเกียรติและสถานะทางสังคมสูงในระหว่างการประกอบอาชีพ',
+                                clueEn: 'Offense committed by a person of respectability and high social status in the course of occupation.'
+                            },
+                            {
+                                timestamp: '08:00 AM',
+                                headingTh: 'การกู้คืนหลักฐานจากฮาร์ดแวร์',
+                                headingEn: 'Digital Artifact Recovery',
+                                storyTh: 'ผู้เชี่ยวชาญนิติวิทยาศาสตร์คอมพิวเตอร์ทำการสร้างสำเนาข้อมูลระดับบิต (Bit-stream Forensic Image) จาก SSD ของเครื่องแม่ข่าย พบข้อมูลใน Unallocated Space และ Metadata ของไฟล์ที่ระบุเวลาแก้ไขและรหัสผู้ใช้งานของวิชญ์อย่างชัดเจน',
+                                storyEn: 'Digital forensic examiners create a bit-stream forensic image of the server SSD, recovering deleted records from unallocated space along with file metadata tying timestamps directly to Wich’s user credentials.',
+                                clueTh: 'การรักษาความถูกต้องของข้อมูลดิจิทัล (Chain of Custody & Hash Verification) และการกู้คืน Metadata',
+                                clueEn: 'Preserving digital integrity via hash verification and recovering unallocated space & metadata.'
+                            }
+                        ],
+                        questionTh: 'แนวคิดทางอาชญาวิทยาใดที่ Edwin Sutherland บัญญัติขึ้นเพื่ออธิบายพฤติกรรมของ ดร.วิชญ์ ทั้งในแง่สถานะผู้กระทำผิดและกระบวนการเรียนรู้?',
+                        questionEn: 'Which twin concepts pioneered by Edwin Sutherland explain both Dr. Wich’s offender profile and his behavioral learning process?',
+                        options: [
+                            {
+                                labelTh: 'A. White-Collar Crime (อาชญากรรมคอปกขาว) และ Differential Association Theory (ทฤษฎีการคบหาสมาคมที่แตกต่าง)',
+                                labelEn: 'A. White-Collar Crime & Differential Association Theory',
+                                isCorrect: true,
+                                feedbackTh: 'ยอดเยี่ยมมากค่ะคุณแพร! Sutherland ลบล้างความเชื่อเดิมที่ว่าอาชญากรรมเกิดจากความยากจนเท่านั้น พร้อมอธิบายว่าพฤติกรรมอาชญากรรมเรียนรู้ผ่านการปฏิสัมพันธ์และรับชุดคำอธิบายที่เอื้อต่อการละเมิดกฎหมาย',
+                                feedbackEn: 'Spot on! Sutherland challenged poverty-only explanations by defining White-Collar Crime and showing how criminal techniques and rationalizations are learned via Differential Association.'
+                            },
+                            {
+                                labelTh: 'B. Broken Windows Theory (ทฤษฎีหน้าต่างแตก) และ Biological Positivism',
+                                labelEn: 'B. Broken Windows Theory & Biological Positivism',
+                                isCorrect: false,
+                                feedbackTh: 'ยังไม่ตรงค่ะ Broken Windows เน้นความเสื่อมโทรมทางกายภาพในพื้นที่สาธารณะ ส่วนคดีนี้เกิดในองค์กรระดับสูงผ่านการเรียนรู้ทางสังคม',
+                                feedbackEn: 'Not quite. Broken Windows addresses visible neighborhood disorder, whereas this case involves elite occupational socialization.'
+                            }
+                        ],
+                        criminologyAnalysisTh: 'Edwin H. Sutherland (1939, 1947) เสนอว่าอาชญากรรมไม่ได้ผูกขาดอยู่กับชนชั้นล่าง แต่เกิดขึ้นในหมู่ผู้มีสถานะสูง (White-Collar Crime) ผ่านกระบวนการ Differential Association โดยผู้กระทำผิดเรียนรู้ทั้ง "วิธีการ" (How to manipulate ledgers) และ "เหตุผลสร้างความชอบธรรม" (Rationalizations / Neutralization) จากกลุ่มคนใกล้ชิดในที่ทำงาน',
+                        criminologyAnalysisEn: 'Edwin H. Sutherland (1939, 1947) demonstrated that high-status professionals commit White-Collar Crimes learned through Differential Association—acquiring both technical methods and rationalizations ("everyone does it") within intimate workplace networks.',
+                        forensicAnalysisTh: 'ในงาน Digital Forensics การลบไฟล์ปกติไม่ได้ลบข้อมูลออกจากหน่วยความจำทันที แต่เป็นการปลดล็อกพื้นที่ให้เขียนทับได้ (Unallocated Space) นักนิติวิทยาศาสตร์จึงใช้ Write Blocker ร่วมกับการคำนวณค่าแฮช (SHA-256) เพื่อยืนยันว่าหลักฐานไม่ถูกเปลี่ยนแปลงก่อนขึ้นศาล',
+                        forensicAnalysisEn: 'In Digital Forensics, standard file deletion merely marks sectors as unallocated space. Examiners use hardware write-blockers and cryptographic hashing (SHA-256) to preserve bit-stream images and extract intact EXIF/system metadata.',
+                        citation: 'Sutherland, E. H. (1940). White-collar criminality. American Sociological Review, 5(1), 1–12. & Sutherland, E. H. (1947). Principles of criminology (4th ed.). J. B. Lippincott.',
+                        paperQuery: 'Sutherland 1940 White-collar criminality Differential Association',
+                        videoQuery: 'Edwin Sutherland White Collar Crime Differential Association lecture'
+                    },
+                    {
+                        id: 'case-forensic-pier',
+                        code: 'CASE #03-FOR',
+                        shortTitleTh: 'คราบเรืองแสงที่ท่าเรือร้าง',
+                        shortTitleEn: 'Luminol at the Abandoned Pier',
+                        genreTh: 'นิติวิทยาศาสตร์เชิงลึก & การควบคุมตนเอง',
+                        genreEn: 'Forensic Serology/BPA & Self-Control',
+                        location: 'PIER 19 // ESTUARY DOCK',
+                        titleTh: 'คดีที่ 03: รอยกระเซ็นใต้แสงยูวี ณ ท่าเรือหมายเลข 19',
+                        titleEn: 'Case 03: UV Spatter Traces at Pier 19',
+                        acts: [
+                            {
+                                timestamp: '01:05 AM',
+                                headingTh: 'การระเบิดอารมณ์ชั่ววูบ',
+                                headingEn: 'Impulsive Escalation',
+                                storyTh: '“นนท์” มีประวัติความใจร้อน ไม่สามารถอดทนรอคอยผลระยะยาว และขาดความผูกพันกับครอบครัวหรืออาชีพที่มั่นคง เมื่อมีปากเสียงเรื่องหนี้พนันที่ท่าเรือร้าง เขาคว้าท่อนเหล็กฟาดคู่กรณีทันทีโดยไม่คิดถึงผลที่จะตามมา',
+                                storyEn: 'Non has a history of impulsivity, low frustration tolerance, and weak ties to family or steady employment. During a gambling dispute at an abandoned pier, he strikes his rival with an iron pipe without considering consequences.',
+                                clueTh: 'การขาดการยับยั้งชั่งใจตนเอง (Low Self-Control) ร่วมกับพันธะทางสังคม (Social Bonds) ที่อ่อนแอ',
+                                clueEn: 'Low self-control coupled with weakened social bonds (attachment, commitment, involvement, belief).'
+                            },
+                            {
+                                timestamp: '03:20 AM',
+                                headingTh: 'ความพยายามล้างหลักฐาน',
+                                headingEn: 'Attempted Scene Cleanup',
+                                storyTh: 'นนท์ตักน้ำทะเลสาดล้างพื้นไม้กระดานจนมองด้วยตาเปล่าไม่เห็นคราบเลือด แล้วโยนท่อนเหล็กทิ้งลงน้ำ แต่เขาไม่รู้ว่าสารฮีม (Heme) ในฮีโมโกลบินยังคงฝังอยู่ในร่องเสี้ยนไม้',
+                                storyEn: 'Non splashes seawater across the wooden planks until no blood is visible to the naked eye and tosses the pipe into the river, unaware that hemoglobin’s heme group remains trapped in the wood grain.',
+                                clueTh: 'คราบเลือดแฝง (Latent Bloodstains) ที่ถูกล้างด้วยน้ำยังคงตรวจพบได้ด้วยปฏิกิริยาเคมีเรืองแสง',
+                                clueEn: 'Latent bloodstains washed with water remain detectable via chemiluminescent reagents.'
+                            },
+                            {
+                                timestamp: '05:45 AM',
+                                headingTh: 'การวิเคราะห์รูปแบบคราบเลือดและ DNA',
+                                headingEn: 'BPA & STR DNA Profiling',
+                                storyTh: 'เมื่อฉีดพ่นสาร Luminol ในความมืด พื้นไม้เรืองแสงสีฟ้าอมเขียวเผยให้เห็นทิศทางของหยดเลือดขนาดเล็กความเร็วปานกลาง (Medium-Velocity Impact Spatter) และพื้นที่ว่าง (Void Pattern) ที่บ่งชี้ตำแหน่งยืนของผู้ก่อเหตุ พร้อมสกัดโปรไฟล์ STR DNA ยืนยันตัวบุคคลได้สำเร็จ',
+                                storyEn: 'Spraying Luminol in darkness reveals blue-green luminescence showing medium-velocity impact spatter and a clear void pattern indicating the assailant’s stance, while STR DNA profiling confirms identity.',
+                                clueTh: 'มุมตกกระทบ (Angle of Impact) และพื้นที่ว่าง (Void) ช่วยจำลองเหตุการณ์ย้อนหลัง (Crime Scene Reconstruction)',
+                                clueEn: 'Angle of impact and void patterns enable accurate crime scene reconstruction.'
+                            }
+                        ],
+                        questionTh: 'หลักการทางนิติวิทยาศาสตร์ใดที่ช่วยให้ทีมสืบสวนทราบตำแหน่งยืนของคนร้ายแม้คราบเลือดจะถูกล้างออกด้วยตาเปล่าไปแล้ว?',
+                        questionEn: 'Which forensic combination reveals the assailant’s exact standing position even after visible blood was washed away?',
+                        options: [
+                            {
+                                labelTh: 'A. ปฏิกิริยาเคมีเรืองแสง Luminol ร่วมกับการวิเคราะห์รูปแบบคราบเลือด (Bloodstain Pattern Analysis - BPA: Void Pattern)',
+                                labelEn: 'A. Luminol Chemiluminescence + Bloodstain Pattern Analysis (Void Pattern)',
+                                isCorrect: true,
+                                feedbackTh: 'แม่นยำที่สุดค่ะ! ฮีมในเลือดเร่งปฏิกิริยาออกซิเดชันของ Luminol ให้เรืองแสง ส่วนบริเวณที่ร่างกายคนร้ายบังละอองเลือดไว้จะเกิดเป็น "Void Pattern" ทำให้รู้ตำแหน่งยืนทันที',
+                                feedbackEn: 'Exact match! Hemoglobin’s iron catalyzes Luminol’s blue glow, while the shadow where the offender blocked spatter creates a diagnostic "Void Pattern."'
+                            },
+                            {
+                                labelTh: 'B. การตรวจหาลายนิ้วมือแฝงด้วยผงฝุ่นแม่เหล็ก (Magnetic Powder) เพียงอย่างเดียว',
+                                labelEn: 'B. Magnetic Fingerprint Powder alone',
+                                isCorrect: false,
+                                feedbackTh: 'ผงฝุ่นแม่เหล็กใช้เก็บลายนิ้วมือบนพื้นผิวเรียบที่แห้ง ไม่สามารถใช้ตรวจหารูปแบบการกระเซ็นของเลือดบนไม้เปียกได้ค่ะ',
+                                feedbackEn: 'Magnetic powder develops latent prints on dry non-porous surfaces, not washed blood spatter on wet wood.'
+                            }
+                        ],
+                        criminologyAnalysisTh: 'ในมุมอาชญาวิทยา ทฤษฎีการควบคุมตนเอง (General Theory of Crime / Self-Control Theory) ของ Gottfredson & Hirschi (1990) อธิบายว่าอาชญากรรมมักเกิดจากบุคคลที่มี Low Self-Control (หุนหันพลันแล่น มองการณ์ใกล้ ชอบความเสี่ยง) ซึ่งสืบเนื่องมาจากทฤษฎีพันธะทางสังคม (Social Bond Theory) ของ Hirschi (1969) ที่ชี้ว่าเมื่อความผูกพัน (Attachment) และพันธกิจต่อสังคม (Commitment) อ่อนแอ แรงยับยั้งอาชญากรรมจะลดลง',
+                        criminologyAnalysisEn: 'Criminologically, Gottfredson & Hirschi’s (1990) General Theory of Crime attributes impulsive violent acts to Low Self-Control, building upon Hirschi’s (1969) Social Bond Theory, where weakened attachment and commitment remove internal restraints.',
+                        forensicAnalysisTh: 'การใช้ Luminol (3-aminophthalhydrazide) ทำปฏิกิริยากับธาตุเหล็กในฮีโมโกลบินทำให้เกิดแสงสีฟ้า (Chemiluminescence) จากนั้นนักวิเคราะห์รูปแบบคราบเลือด (BPA) จะคำนวณมุมตกกระทบจากสูตร sin(θ) = กว้าง / ยาว และวิเคราะห์ Void Pattern เพื่อระบุตำแหน่งผู้กระทำผิด ก่อนเก็บตัวอย่างส่งตรวจ STR DNA (Short Tandem Repeats)',
+                        forensicAnalysisEn: 'Luminol reacts with iron in hemoglobin to emit blue chemiluminescence. BPA specialists then calculate impact angles via sin(θ) = width / length and identify void patterns to reconstruct offender positioning prior to STR DNA profiling.',
+                        citation: 'Gottfredson, M. R., & Hirschi, T. (1990). A general theory of crime. Stanford University Press. & James, S. H., Kish, P. E., & Sutton, T. P. (2005). Principles of bloodstain pattern analysis: Theory and practice. CRC Press.',
+                        paperQuery: 'Gottfredson Hirschi 1990 General Theory of Crime Bloodstain Pattern Analysis',
+                        videoQuery: 'Bloodstain Pattern Analysis Luminol Forensic Science lecture'
+                    }
+                ];
+
+                const selectedCaseIndex = ref(0);
+                const selectedOption = ref(null);
+                const revealCaseBreakdown = ref(false);
+
+                const currentCase = computed(() => casesData[selectedCaseIndex.value]);
+
+                const selectCase = (idx) => {
+                    selectedCaseIndex.value = idx;
+                    selectedOption.value = null;
+                    revealCaseBreakdown.value = false;
+                };
+
+                const answerCaseQuestion = (oIdx) => {
+                    selectedOption.value = oIdx;
+                    if (currentCase.value.options[oIdx].isCorrect) {
+                        revealCaseBreakdown.value = true;
+                    }
+                };
+
+                // =====================================================================
+                // DATA 2: ENCYCLOPEDIC THEORY & ACADEMIC PAPER VAULT
+                // =====================================================================
+                const searchQuery = ref('');
+                const selectedCategory = ref('all');
+
+                const theoryCategories = [
+                    { id: 'all', labelTh: 'ทั้งหมด (All)', labelEn: 'All Schools' },
+                    { id: 'classical', labelTh: 'สำนักคลาสสิก & ทางเลือก', labelEn: 'Classical & Choice' },
+                    { id: 'strain', labelTh: 'ความกดดัน & โครงสร้าง', labelEn: 'Strain & Structure' },
+                    { id: 'process', labelTh: 'การเรียนรู้ & การควบคุม', labelEn: 'Learning & Control' },
+                    { id: 'critical', labelTh: 'การตีตรา & วิพากษ์', labelEn: 'Labeling & Critical' },
+                    { id: 'forensic', labelTh: 'หลักนิติวิทยาศาสตร์', labelEn: 'Forensic Principles' }
+                ];
+
+                const theoriesData = [
+                    {
+                        id: 'classical-beccaria',
+                        category: 'classical',
+                        schoolTh: 'สำนักคลาสสิก (Classical School)',
+                        schoolEn: 'Classical Criminology',
+                        theorist: 'Cesare Beccaria',
+                        year: '1764',
+                        nameTh: 'ทฤษฎีเจตจำนงเสรีและการยับยั้งชั่งใจ (Deterrence Theory)',
+                        nameEn: 'Classical Deterrence & Free Will Theory',
+                        coreTh: 'มนุษย์มีเหตุผลและเจตจำนงเสรี (Free Will) ในการชั่งน้ำหนักระหว่างความสุข (Pleasure) กับความเจ็บปวด (Pain) บทลงโทษจะยับยั้งอาชญากรรมได้ต้องมีความแน่นอน (Certainty) รวดเร็ว (Celerity) และได้สัดส่วน (Severity)',
+                        coreEn: 'Humans possess free will and rationality, weighing pleasure against pain. Punishment deters crime effectively only when it is certain, swift (celerity), and proportionate.',
+                        detailTh: 'Beccaria ปฏิรูปกระบวนการยุติธรรมยุคฟื้นฟูศิลปวิทยา โดยคัดค้านการทรมานและโทษประหารชีวิตที่ไร้มาตรฐาน เขาเสนอว่ากฎหมายต้องชัดเจนและ "ความแน่นอนของการถูกลงโทษ" สำคัญกว่าความรุนแรงของโทษ',
+                        detailEn: 'Beccaria revolutionized justice by opposing arbitrary torture and capital punishment, arguing that clarity of law and certainty of apprehension matter far more than extreme severity.',
+                        applicationTh: 'การกำหนดอัตราโทษที่ชัดเจนในประมวลกฎหมายอาญา และการเพิ่มโอกาสตรวจจับด้วยกล้องวงจรปิดเพื่อเพิ่มความแน่นอนในการลงโทษ',
+                        applicationEn: 'Codified sentencing guidelines and increased patrol/CCTV visibility to elevate perceived certainty of apprehension.',
+                        critiqueTh: 'ละเลยความแตกต่างส่วนบุคคล ปัจจัยทางจิตวิทยา ความยากจน และอารมณ์ชั่ววูบที่ทำให้คนไม่ได้คำนวณเหตุผลตลอดเวลา',
+                        critiqueEn: 'Overlooks psychological impairments, socioeconomic inequality, and impulsive offenses committed without rational calculation.',
+                        citation: 'Beccaria, C. (1764/1986). On crimes and punishments (D. Young, Trans.). Hackett Publishing.',
+                        paperQuery: 'Cesare Beccaria On Crimes and Punishments Deterrence Theory',
+                        doiUrl: 'https://scholar.google.com/scholar?q=Cesare+Beccaria+On+Crimes+and+Punishments',
+                        videoQuery: 'Cesare Beccaria Classical School of Criminology Deterrence'
+                    },
+                    {
+                        id: 'rational-choice',
+                        category: 'classical',
+                        schoolTh: 'อาชญาวิทยาเชิงสถานการณ์ (Neo-Classical)',
+                        schoolEn: 'Neo-Classical / Situational',
+                        theorist: 'Derek Cornish & Ronald Clarke',
+                        year: '1986',
+                        nameTh: 'ทฤษฎีการเลือกอย่างมีเหตุผล (Rational Choice Theory)',
+                        nameEn: 'Rational Choice Perspective',
+                        coreTh: 'ผู้กระทำผิดตัดสินใจก่ออาชญากรรมภายใต้ "เหตุผลที่มีขอบเขตจำกัด (Bounded Rationality)" โดยประเมินความเสี่ยง ความพยายาม และผลตอบแทนเฉพาะหน้าของแต่ละประเภทอาชญากรรม',
+                        coreEn: 'Offenders make purposive decisions under "bounded rationality," evaluating immediate risks, effort, and rewards specific to each crime type.',
+                        detailTh: 'Cornish และ Clarke อธิบายว่าอาชญากรไม่ใช่คนไร้เหตุผล แต่ตัดสินใจโดยอาศัยข้อมูลที่จำกัด ณ เวลานั้น นำไปสู่แนวคิดการป้องกันอาชญากรรมเชิงสถานการณ์ (Situational Crime Prevention - SCP) เพื่อเพิ่มความยากและความเสี่ยงในการลงมือ',
+                        detailEn: 'Cornish and Clarke argue offenders act purposively with limited time and information, leading to Situational Crime Prevention (SCP) strategies that increase effort and risk.',
+                        applicationTh: 'การออกแบบระบบยืนยันตัวตนสองชั้น (2FA) การติดสัญญาณกันขโมย และการลดผลตอบแทนของทรัพย์สินที่ถูกขโมย',
+                        applicationEn: 'Two-factor authentication, immobilizers, and target hardening that raise effort and reduce anticipated rewards.',
+                        critiqueTh: 'อธิบายอาชญากรรมที่เกิดจากความโกรธแค้นรุนแรงหรืออาการป่วยทางจิตได้น้อยกว่าอาชญากรรมทรัพย์สิน',
+                        critiqueEn: 'Less explanatory for expressive crimes driven by acute rage, trauma, or severe psychiatric crises.',
+                        citation: 'Cornish, D. B., & Clarke, R. V. (1986). The reasoning criminal: Rational choice perspectives on offending. Springer-Verlag.',
+                        paperQuery: 'Cornish Clarke 1986 The Reasoning Criminal Rational Choice',
+                        doiUrl: 'https://doi.org/10.1007/978-1-4613-8625-4',
+                        videoQuery: 'Rational Choice Theory Cornish and Clarke Criminology'
+                    },
+                    {
+                        id: 'routine-activity',
+                        category: 'classical',
+                        schoolTh: 'นิเวศวิทยาอาชญากรรมเชิงสถานการณ์',
+                        schoolEn: 'Environmental / Situational',
+                        theorist: 'Lawrence Cohen & Marcus Felson',
+                        year: '1979',
+                        nameTh: 'ทฤษฎีกิจวัตรประจำวัน (Routine Activity Theory)',
+                        nameEn: 'Routine Activity Theory (RAT)',
+                        coreTh: 'อาชญากรรมเกิดขึ้นเมื่อองค์ประกอบ 3 ประการมาบรรจบกันในเวลาและสถานที่เดียวกัน: (1) ผู้มีแรงจูงใจ (2) เป้าหมายที่เหมาะสม (VIVA) และ (3) การขาดผู้พิทักษ์ที่สามารถยับยั้งได้',
+                        coreEn: 'Crime occurs when three elements converge in space and time: (1) a motivated offender, (2) a suitable target, and (3) the absence of a capable guardian.',
+                        detailTh: 'Cohen และ Felson พบว่าแม้เศรษฐกิจจะดีขึ้น แต่อัตราอาชญากรรมกลับพุ่งสูงขึ้นเพราะวิถีชีวิตสมัยใหม่ทำให้ผู้คนออกนอกบ้านมากขึ้น ทิ้งบ้านไว้ลำพัง และสินค้าอิเล็กทรอนิกส์มีขนาดเล็กพกพาง่าย (Value, Inertia, Visibility, Access - VIVA)',
+                        detailEn: 'Cohen and Felson observed rising crime during prosperous eras due to shifts in daily routines leaving homes unguarded and lightweight valuables (VIVA) widely accessible.',
+                        applicationTh: 'การวางสายตรวจตามจุดเสี่ยง (Hot Spots Policing) และการสร้างเครือข่ายเฝ้าระวังในชุมชนและโลกออนไลน์',
+                        applicationEn: 'Hot-spots policing, neighborhood watch initiatives, and digital cybersecurity monitoring.',
+                        critiqueTh: 'รับเอา "ผู้มีแรงจูงใจ" เป็นตัวตั้งต้นโดยไม่ได้อธิบายเชิงลึกว่าแรงจูงใจนั้นก่อตัวขึ้นจากความเหลื่อมล้ำอย่างไร',
+                        critiqueEn: 'Takes the "motivated offender" as a given without explaining the structural origins of criminal motivation.',
+                        citation: 'Cohen, L. E., & Felson, M. (1979). Social change and crime rate trends: A routine activity approach. American Sociological Review, 44(4), 588–608.',
+                        paperQuery: 'Cohen Felson 1979 Social change and crime rate trends routine activity',
+                        doiUrl: 'https://doi.org/10.2307/2094589',
+                        videoQuery: 'Routine Activity Theory Cohen and Felson explained'
+                    },
+                    {
+                        id: 'merton-strain',
+                        category: 'strain',
+                        schoolTh: 'สำนักโครงสร้างหน้าที่นิยม (Structural Functionalism)',
+                        schoolEn: 'Structural / Anomie School',
+                        theorist: 'Robert K. Merton',
+                        year: '1938',
+                        nameTh: 'ทฤษฎีความกดดันทางโครงสร้างและอโนมี (Strain Theory)',
+                        nameEn: 'Structural Strain & Anomie Theory',
+                        coreTh: 'เมื่อสังคมปลูกฝังเป้าหมายความสำเร็จทางวัตถุ (Cultural Goals) ให้ทุกคน แต่โครงสร้างสังคมกลับกระจายโอกาสที่ถูกกฎหมาย (Institutionalized Means) อย่างไม่เท่าเทียม จึงเกิดแรงกดดันให้เกิดพฤติกรรมเบี่ยงเบน',
+                        coreEn: 'When society universally promotes material success goals while unevenly distributing legitimate institutional means, structural strain drives five modes of adaptation.',
+                        detailTh: 'Merton จำแนกการปรับตัวของมนุษย์ไว้ 5 รูปแบบ ได้แก่ Conformity (คล้อยตาม), Innovation (ยอมรับเป้าหมายแต่ใช้วิธีผิดกฎหมาย เช่น ลักทรัพย์ ฉ้อโกง), Ritualism (ยึดติดกฎแต่ทิ้งเป้าหมาย), Retreatism (ถอนตัว เช่น ติดยาเสพติด) และ Rebellion (กบฏเปลี่ยนโครงสร้าง)',
+                        detailEn: 'Merton outlined five adaptations: Conformity, Innovation (accepting goals, using illicit means), Ritualism, Retreatism (substance escape), and Rebellion.',
+                        applicationTh: 'นโยบายลดความเหลื่อมล้ำทางการศึกษาและอาชีพ เพื่อเปิดช่องทางที่ถูกกฎหมายให้กลุ่มเปราะบางเข้าถึงเป้าหมายชีวิตได้',
+                        applicationEn: 'Expanding educational scholarships and vocational pathways to reduce blocked opportunities.',
+                        critiqueTh: 'เน้นอาชญากรรมทางเศรษฐกิจของชนชั้นล่างมากเกินไป และอธิบายความรุนแรงที่ไม่เกี่ยวกับเงินได้ไม่ดีนัก',
+                        critiqueEn: 'Overemphasizes lower-class monetary crime and struggles to explain non-utilitarian juvenile violence.',
+                        citation: 'Merton, R. K. (1938). Social structure and anomie. American Sociological Review, 3(5), 672–682.',
+                        paperQuery: 'Merton 1938 Social structure and anomie',
+                        doiUrl: 'https://doi.org/10.2307/2084686',
+                        videoQuery: 'Robert Merton Strain Theory Anomie Criminology'
+                    },
+                    {
+                        id: 'agnew-gst',
+                        category: 'strain',
+                        schoolTh: 'ทฤษฎีความกดดันร่วมสมัย (Contemporary Strain)',
+                        schoolEn: 'Contemporary Strain',
+                        theorist: 'Robert Agnew',
+                        year: '1992',
+                        nameTh: 'ทฤษฎีความกดดันทั่วไป (General Strain Theory - GST)',
+                        nameEn: 'General Strain Theory (GST)',
+                        coreTh: 'ความกดดันไม่ได้เกิดจากเรื่องเงินเท่านั้น แต่เกิดจาก 3 แหล่งหลัก: (1) พลาดเป้าหมายที่ตั้งใจ (2) สูญเสียสิ่งที่มีคุณค่า และ (3) เผชิญสิ่งเร้าเชิงลบ ก่อให้เกิดอารมณ์โกรธและคับข้องใจซึ่งนำไปสู่อาชญากรรม',
+                        coreEn: 'Strain arises from three sources: failure to achieve positively valued goals, removal of positively valued stimuli, and presentation of noxious stimuli—triggering anger and frustration.',
+                        detailTh: 'Agnew ขยายทฤษฎีของ Merton ให้ครอบคลุมมิติทางจิตวิทยาและอารมณ์ เช่น การถูกกลั่นแกล้ง (Bullying) การหย่าร้างของพ่อแม่ หรือความรุนแรงในครอบครัว ซึ่งสร้างอารมณ์เชิงลบ (Negative Affective States) และผลักดันให้เกิดพฤติกรรมก้าวร้าวหากขาดทักษะการรับมือ',
+                        detailEn: 'Agnew broadened strain beyond economics to interpersonal stressors like bullying, bereavement, or abuse, showing how negative emotions—especially anger—mediate delinquency.',
+                        applicationTh: 'โปรแกรมจัดการความโกรธ (Anger Management) และการให้คำปรึกษาเชิงจิตวิทยาในโรงเรียนเพื่อป้องกันความรุนแรงในวัยรุ่น',
+                        applicationEn: 'School-based anger management and trauma counseling to build healthy coping mechanisms.',
+                        critiqueTh: 'ความกดดันในชีวิตเกิดขึ้นกับทุกคน การทำนายว่าใครจะเลือกทางออกที่ผิดกฎหมายยังต้องอาศัยปัจจัยอื่นร่วมด้วย',
+                        critiqueEn: 'Because strain is ubiquitous, predicting who turns to crime versus prosocial coping requires supplementary variables.',
+                        citation: 'Agnew, R. (1992). Foundation for a general strain theory of crime and delinquency. Criminology, 30(1), 47–88.',
+                        paperQuery: 'Robert Agnew 1992 Foundation for a general strain theory of crime',
+                        doiUrl: 'https://doi.org/10.1111/j.1745-9125.1992.tb01093.x',
+                        videoQuery: 'Robert Agnew General Strain Theory Criminology'
+                    },
+                    {
+                        id: 'social-disorg',
+                        category: 'strain',
+                        schoolTh: 'สำนักชิคาโก (Chicago School)',
+                        schoolEn: 'Chicago School / Social Ecology',
+                        theorist: 'Clifford Shaw & Henry McKay',
+                        year: '1942',
+                        nameTh: 'ทฤษฎีความไม่เป็นระเบียบของสังคม (Social Disorganization)',
+                        nameEn: 'Social Disorganization Theory',
+                        coreTh: 'อาชญากรรมกระจุกตัวอยู่ใน "เขตเปลี่ยนผ่าน (Zone in Transition)" ที่มีความยากจนสูง การย้ายถิ่นเข้าออกบ่อย และความหลากหลายทางวัฒนธรรม ทำให้ชุมชนขาดความสามัคคีและการควบคุมทางสังคมอย่างไม่เป็นทางการ',
+                        coreEn: 'Crime concentrates in "Zones in Transition" marked by poverty, residential mobility, and heterogeneity, which erode collective efficacy and informal social control.',
+                        detailTh: 'Shaw และ McKay ศึกษาแผนที่อาชญากรรมในเมืองชิคาโกและพบว่าแม้กลุ่มประชากรในย่านนั้นจะเปลี่ยนเชื้อชาติไปตามกาลเวลา แต่อัตราอาชญากรรมยังคงสูงคงที่ในพื้นที่เดิม พิสูจน์ว่า "สถานที่" และโครงสร้างชุมชนส่งผลมากกว่าเชื้อชาติ',
+                        detailEn: 'Mapping Chicago neighborhoods, Shaw and McKay proved delinquency rates remained persistently high in transitional zones regardless of which ethnic group lived there, proving place matters over biology.',
+                        applicationTh: 'การฟื้นฟูพื้นที่สาธารณะ การสร้าง Collective Efficacy (Sampson) และความร่วมมือระหว่างตำรวจกับชุมชน',
+                        applicationEn: 'Urban renewal, strengthening neighborhood collective efficacy (Sampson), and community policing.',
+                        critiqueTh: 'เสี่ยงต่อการเกิด Ecological Fallacy (การเหมารวมพฤติกรรมปัจเจกจากข้อมูลระดับพื้นที่) และมองข้ามอาชญากรรมในย่านคนรวย',
+                        critiqueEn: 'Risk of ecological fallacy and under-explaining white-collar crimes occurring in affluent suburbs.',
+                        citation: 'Shaw, C. R., & McKay, H. D. (1942). Juvenile delinquency and urban areas. University of Chicago Press.',
+                        paperQuery: 'Shaw McKay 1942 Juvenile delinquency and urban areas Social Disorganization',
+                        doiUrl: 'https://scholar.google.com/scholar?q=Shaw+McKay+1942+Juvenile+delinquency+and+urban+areas',
+                        videoQuery: 'Social Disorganization Theory Chicago School Shaw McKay'
+                    },
+                    {
+                        id: 'differential-assoc',
+                        category: 'process',
+                        schoolTh: 'ทฤษฎีกระบวนการเรียนรู้ทางสังคม',
+                        schoolEn: 'Social Learning Process',
+                        theorist: 'Edwin H. Sutherland',
+                        year: '1947',
+                        nameTh: 'ทฤษฎีการคบหาสมาคมที่แตกต่าง (Differential Association)',
+                        nameEn: 'Differential Association Theory',
+                        coreTh: 'พฤติกรรมอาชญากรรมเกิดจากการเรียนรู้ผ่านการปฏิสัมพันธ์ในกลุ่มใกล้ชิด บุคคลจะกระทำผิดเมื่อได้รับ "คำนิยามที่เอื้อต่อการละเมิดกฎหมาย" มากกว่าคำนิยามที่เคารพกฎหมาย',
+                        coreEn: 'Criminal behavior is learned in intimate personal groups; a person becomes delinquent because of an excess of definitions favorable to violation of law over definitions unfavorable.',
+                        detailTh: 'Sutherland เสนอหลักการ 9 ประการ ระบุว่าสิ่งที่เรียนรู้ไม่ใช่แค่เทคนิคการก่อเหตุ (เช่น วิธีงัดแงะหรือฟอกเงิน) แต่รวมถึงแรงจูงใจ ทัศนคติ และเหตุผลเข้าข้างตนเอง ซึ่งขึ้นอยู่กับความถี่ ระยะเวลา ความสำคัญ และความเข้มข้นของการคบหา',
+                        detailEn: 'Through nine propositions, Sutherland detailed how individuals learn both criminal techniques and rationalizations depending on frequency, duration, priority, and intensity of associations.',
+                        applicationTh: 'การแยกผู้กระทำผิดเยาวชนออกจากเครือข่ายแก๊งเดิม และการสร้างกลุ่มเพื่อนเชิงบวก (Prosocial Peer Mentoring)',
+                        applicationEn: 'Separating juvenile offenders from delinquent peer networks and fostering prosocial mentorship.',
+                        critiqueTh: 'วัดปริมาณ "คำนิยามที่เอื้อต่อการทำผิด" ในเชิงประจักษ์ได้ยาก และอธิบายอาชญากรรมที่ทำคนเดียวโดยไม่เคยเรียนรู้ได้จำกัด',
+                        critiqueEn: 'Difficult to operationalize and measure the exact ratio of definitions empirically.',
+                        citation: 'Sutherland, E. H. (1947). Principles of criminology (4th ed.). J. B. Lippincott.',
+                        paperQuery: 'Edwin Sutherland Differential Association Theory 9 propositions',
+                        doiUrl: 'https://scholar.google.com/scholar?q=Edwin+Sutherland+Differential+Association+Theory',
+                        videoQuery: 'Differential Association Theory Edwin Sutherland explained'
+                    },
+                    {
+                        id: 'social-bond',
+                        category: 'process',
+                        schoolTh: 'ทฤษฎีการควบคุมทางสังคม (Social Control)',
+                        schoolEn: 'Social Control School',
+                        theorist: 'Travis Hirschi',
+                        year: '1969',
+                        nameTh: 'ทฤษฎีพันธะทางสังคม (Social Bond Theory)',
+                        nameEn: 'Social Bond / Control Theory',
+                        coreTh: 'แทนที่จะถามว่า "ทำไมคนจึงทำผิด" Hirschi ถามว่า "ทำไมคนส่วนใหญ่จึงไม่ทำผิด" คำตอบคือเพราะมีพันธะทางสังคม 4 ประการยึดเหนี่ยวไว้: Attachment, Commitment, Involvement และ Belief',
+                        coreEn: 'Rather than asking why people offend, Hirschi asks why most conform: because four social bonds—Attachment, Commitment, Involvement, and Belief—restrain natural impulses.',
+                        detailTh: 'พันธะทั้ง 4 ได้แก่ (1) Attachment: ความผูกพันทางใจกับพ่อแม่/ครู (2) Commitment: การลงทุนกับอนาคตและการศึกษา (3) Involvement: การใช้เวลาในกิจกรรมสร้างสรรค์ และ (4) Belief: ความศรัทธาในความชอบธรรมของกฎหมาย',
+                        detailEn: 'The four bonds are Attachment (affectionate ties), Commitment (stake in conformity), Involvement (conventional activities), and Belief (moral validity of rules).',
+                        applicationTh: 'การส่งเสริมความสัมพันธ์ในครอบครัวและกิจกรรมนอกหลักสูตรเพื่อสร้าง "ต้นทุนทางสังคม" ที่วัยรุ่นไม่อยากสูญเสีย',
+                        applicationEn: 'Strengthening family engagement and extracurricular programs to increase youths’ stake in conformity.',
+                        critiqueTh: 'ต่อมา Hirschi เองได้ปรับแนวคิดร่วมกับ Gottfredson ไปสู่ทฤษฎีการควบคุมตนเอง (Self-Control Theory) ในปี 1990',
+                        critiqueEn: 'Hirschi later revised this framework with Gottfredson into the Self-Control Theory (1990).',
+                        citation: 'Hirschi, T. (1969). Causes of delinquency. University of California Press.',
+                        paperQuery: 'Travis Hirschi 1969 Causes of delinquency Social Bond Theory',
+                        doiUrl: 'https://scholar.google.com/scholar?q=Travis+Hirschi+1969+Causes+of+delinquency',
+                        videoQuery: 'Travis Hirschi Social Bond Theory Criminology'
+                    },
+                    {
+                        id: 'labeling-becker',
+                        category: 'critical',
+                        schoolTh: 'ปฏิสัมพันธ์นิยมเชิงสัญลักษณ์ & วิพากษ์',
+                        schoolEn: 'Symbolic Interactionism & Critical',
+                        theorist: 'Howard S. Becker & Edwin Lemert',
+                        year: '1963',
+                        nameTh: 'ทฤษฎีการตีตรา (Labeling Theory & Secondary Deviance)',
+                        nameEn: 'Labeling Theory & Secondary Deviance',
+                        coreTh: 'ความเบี่ยงเบนไม่ใช่คุณสมบัติในตัวการกระทำ แต่เป็นผลจากการที่กลุ่มผู้มีอำนาจสร้างกฎและ "ตีตรา" บุคคลนั้นว่าเป็นอาชญากร จนเกิดการยอมรับอัตลักษณ์เบี่ยงเบน (Self-Fulfilling Prophecy)',
+                        coreEn: 'Deviance is not inherent in an act, but created when social groups apply rules and stigmatizing labels, triggering a self-fulfilling prophecy and secondary deviance.',
+                        detailTh: 'Edwin Lemert แยก "Primary Deviance" (การทำผิดครั้งแรก) ออกจาก "Secondary Deviance" (การทำผิดซ้ำหลังถูกสังคมตีตราและปิดโอกาสกลับตัว) ขณะที่ Becker ชี้ว่าป้ายตรา "อาชญากร" กลายเป็น Master Status ที่กลบตัวตนด้านดีทั้งหมด',
+                        detailEn: 'Lemert distinguished Primary Deviance from Secondary Deviance (re-offending after stigma blocks conventional roles), while Becker showed the criminal label becomes a Master Status.',
+                        applicationTh: 'มาตรการผันคดีออกนอกระบบยุติธรรม (Diversion Programs) สำหรับเยาวชน และกระบวนการยุติธรรมเชิงสมานฉันท์ (Restorative Justice)',
+                        applicationEn: 'Juvenile diversion programs, record expungement, and Restorative Justice circles.',
+                        critiqueTh: 'อธิบายสาเหตุของการกระทำผิดครั้งแรก (Primary Deviance) หรืออาชญากรรมร้ายแรงที่สังคมประณามร่วมกันได้น้อย',
+                        critiqueEn: 'Does not fully account for the initial onset of primary deviance in severe violent offenses.',
+                        citation: 'Becker, H. S. (1963). Outsiders: Studies in the sociology of deviance. Free Press.',
+                        paperQuery: 'Howard Becker 1963 Outsiders Labeling Theory Secondary Deviance',
+                        doiUrl: 'https://scholar.google.com/scholar?q=Howard+Becker+1963+Outsiders',
+                        videoQuery: 'Howard Becker Labeling Theory Primary Secondary Deviance'
+                    },
+                    {
+                        id: 'locard-principle',
+                        category: 'forensic',
+                        schoolTh: 'รากฐานนิติวิทยาศาสตร์ (Forensic Foundations)',
+                        schoolEn: 'Forensic Science Foundations',
+                        theorist: 'Dr. Edmond Locard',
+                        year: '1910',
+                        nameTh: 'หลักการแลกเปลี่ยนของโลการ์ด (Locard’s Exchange Principle)',
+                        nameEn: 'Locard’s Exchange Principle',
+                        coreTh: '“ทุกการสัมผัสย่อมทิ้งร่องรอยเสมอ (Every contact leaves a trace)” เมื่อบุคคลหรือวัตถุสองสิ่งสัมผัสกัน ย่อมเกิดการถ่ายโอนพยานหลักฐานทางกายภาพระหว่างกันไม่ทางใดก็ทางหนึ่ง',
+                        coreEn: '"Every contact leaves a trace." Whenever two objects come into contact, a cross-transfer of microscopic or physical material occurs between them.',
+                        detailTh: 'Edmond Locard ผู้ก่อตั้งห้องปฏิบัติการอาชญากรรมแห่งแรกของโลกที่เมืองลียง ประเทศฝรั่งเศส วางรากฐานการตรวจพิสูจน์ Trace Evidence เช่น เส้นผม เส้นใยผ้า เศษกระจก ละอองเกสร และดิน เพื่อเชื่อมโยงผู้ต้องสงสัย สถานที่เกิดเหตุ และเหยื่อเข้าด้วยกัน (Forensic Triangle)',
+                        detailEn: 'Founder of the world’s first police crime lab in Lyon (1910), Locard established trace evidence analysis (hair, fibers, glass, soil) to link suspect, scene, and victim.',
+                        applicationTh: 'การสวมชุด PPE ป้องกันการปนเปื้อน (Cross-Contamination) ในที่เกิดเหตุ และการเก็บวัตถุพยานขนาดเล็กอย่างเป็นระบบ',
+                        applicationEn: 'Strict crime-scene PPE protocols to prevent cross-contamination and systematic trace evidence collection.',
+                        critiqueTh: 'ความท้าทายยุคใหม่คือการถ่ายโอนขั้นทุติยภูมิ (Secondary Transfer) ในการตรวจ DNA ที่มีความไวสูงมากจนอาจพบ DNA ของผู้ที่ไม่ได้อยู่ในที่เกิดเหตุ',
+                        critiqueEn: 'Modern ultra-sensitive DNA assays must carefully differentiate direct contact from secondary/tertiary DNA transfer.',
+                        citation: 'Locard, E. (1920). L’enquête criminelle et les méthodes scientifiques. Ernest Flammarion.',
+                        paperQuery: 'Edmond Locard Exchange Principle Trace Evidence Forensic Science',
+                        doiUrl: 'https://scholar.google.com/scholar?q=Edmond+Locard+Exchange+Principle+Forensic',
+                        videoQuery: 'Locard Exchange Principle Forensic Science explained'
+                    },
+                    {
+                        id: 'dna-jeffreys',
+                        category: 'forensic',
+                        schoolTh: 'นิติพันธุศาสตร์ (Forensic Genetics)',
+                        schoolEn: 'Forensic Genetics & Serology',
+                        theorist: 'Sir Alec Jeffreys',
+                        year: '1984',
+                        nameTh: 'ลายพิมพ์ดีเอ็นเอและการวิเคราะห์ STR (Forensic DNA Profiling)',
+                        nameEn: 'DNA Fingerprinting & STR Profiling',
+                        coreTh: 'รหัสพันธุกรรมในส่วนที่ไม่แสดงออกเป็นโปรตีน (Non-coding regions / Short Tandem Repeats - STR) มีความจำเพาะเจาะจงในแต่ละบุคคล (ยกเว้นฝาแฝดไข่ใบเดียวกัน) ใช้ยืนยันตัวบุคคลและพิสูจน์ความบริสุทธิ์ได้อย่างแม่นยำ',
+                        coreEn: 'Hypervariable non-coding DNA regions (Short Tandem Repeats - STRs) provide an individual-specific genetic profile capable of both convicting the guilty and exonerating the innocent.',
+                        detailTh: 'Sir Alec Jeffreys ค้นพบเทคนิค DNA Fingerprinting ในปี 1984 และถูกใช้ครั้งแรกในคดี Colin Pitchfork ที่อังกฤษ ปัจจุบันใช้เทคนิค PCR เพิ่มปริมาณสารพันธุกรรมและวิเคราะห์ตำแหน่ง STR 20+ ตำแหน่ง (CODIS Core Loci) ร่วมกับ Mitochondrial DNA (mtDNA) ในกรณีตัวอย่างเสื่อมสภาพ',
+                        detailEn: 'Discovered by Alec Jeffreys in 1984 and first applied in the Colin Pitchfork case, modern forensic genetics uses PCR amplification across 20+ CODIS STR loci and mtDNA for degraded remains.',
+                        applicationTh: 'การตรวจพิสูจน์คราบอสุจิ เลือด รากผม และ Touch DNA รวมถึงโครงการ Innocence Project ที่ช่วยปลดปล่อยผู้บริสุทธิ์',
+                        applicationEn: 'Analyzing biological stains, touch DNA, disaster victim identification, and Innocence Project post-conviction exonerations.',
+                        critiqueTh: 'ต้องระมัดระวัง "Prosecutor’s Fallacy" (ความเข้าใจผิดทางสถิติเรื่องความน่าจะเป็นของความบังเอิญ) และปัญหาการปนเปื้อนในห้องแล็บ',
+                        critiqueEn: 'Requires guarding against the "Prosecutor’s Fallacy" in statistical match probabilities and laboratory contamination.',
+                        citation: 'Jeffreys, A. J., Wilson, V., & Thein, S. L. (1985). Hypervariable ‘minisatellite’ regions in human DNA. Nature, 314(6006), 67–73.',
+                        paperQuery: 'Jeffreys Wilson Thein 1985 Hypervariable minisatellite regions human DNA',
+                        doiUrl: 'https://doi.org/10.1038/314067a0',
+                        videoQuery: 'Alec Jeffreys DNA Fingerprinting STR Profiling Forensic Science'
+                    },
+                    {
+                        id: 'daubert-standard',
+                        category: 'forensic',
+                        schoolTh: 'นิติวิทยาศาสตร์และกฎหมายพยานหลักฐาน',
+                        schoolEn: 'Forensic Law & Admissibility',
+                        theorist: 'U.S. Supreme Court (Daubert v. Merrell Dow)',
+                        year: '1993',
+                        nameTh: 'มาตรฐานดอเบิร์ตในการรับฟังพยานผู้เชี่ยวชาญ (Daubert Standard)',
+                        nameEn: 'The Daubert Standard of Scientific Admissibility',
+                        coreTh: 'พยานหลักฐานทางนิติวิทยาศาสตร์จะรับฟังในศาลได้ ต้องผ่านเกณฑ์ตรวจสอบความน่าเชื่อถือทางวิทยาศาสตร์ 5 ประการ แทนที่เกณฑ์ Frye Standard เดิม',
+                        coreEn: 'Expert forensic testimony is admissible only if its underlying methodology satisfies scientific validity criteria: testability, peer review, known error rates, standards, and general acceptance.',
+                        detailTh: 'มาตรฐาน Daubert กำหนดให้ผู้พิพากษาทำหน้าที่เป็น "Gatekeeper" ตรวจสอบว่าเทคนิคทางนิติวิทยาศาสตร์นั้น (1) ทดสอบซ้ำได้หรือไม่ (Falsifiability) (2) ผ่านการตีพิมพ์ Peer-Review หรือไม่ (3) มีอัตราความคลาดเคลื่อน (Known Error Rate) ชัดเจนหรือไม่ (4) มีมาตรฐานควบคุมการปฏิบัติงานหรือไม่ และ (5) เป็นที่ยอมรับในวงการวิทยาศาสตร์หรือไม่',
+                        detailEn: 'Establishing judges as evidentiary gatekeepers, Daubert requires empirical testability, peer-reviewed publication, documented error rates, operational standards, and scientific consensus.',
+                        applicationTh: 'การประเมินความน่าเชื่อถือของเทคนิคใหม่ๆ ในศาล เช่น การวิเคราะห์เสียง ลายมือ หรือซอฟต์แวร์วิเคราะห์ DNA ผสม',
+                        applicationEn: 'Evaluating novel forensic methods in court, such as probabilistic genotyping software and digital forensics tools.',
+                        critiqueTh: 'ผู้พิพากษาบางท่านอาจไม่มีพื้นฐานทางวิทยาศาสตร์เชิงลึกพอที่จะประเมินระเบียบวิธีวิจัยที่ซับซ้อนด้วยตนเอง',
+                        critiqueEn: 'Judges without formal scientific training may face challenges evaluating complex statistical methodologies.',
+                        citation: 'Daubert v. Merrell Dow Pharmaceuticals, Inc., 509 U.S. 579 (1993). & National Research Council. (2009). Strengthening forensic science in the United States: A path forward. National Academies Press.',
+                        paperQuery: 'Daubert standard forensic science admissibility NRC 2009',
+                        doiUrl: 'https://doi.org/10.17226/12589',
+                        videoQuery: 'Daubert Standard vs Frye Standard Forensic Science Law'
+                    }
+                ];
+
+                const filteredTheories = computed(() => {
+                    return theoriesData.filter((item) => {
+                        const matchCat = selectedCategory.value === 'all' || item.category === selectedCategory.value;
+                        const q = searchQuery.value.trim().toLowerCase();
+                        if (!q) return matchCat;
+                        const haystack = `${item.nameTh} ${item.nameEn} ${item.theorist} ${item.schoolTh} ${item.schoolEn} ${item.coreTh} ${item.coreEn}`.toLowerCase();
+                        return matchCat && haystack.includes(q);
+                    });
+                });
+
+                // =====================================================================
+                // DATA 3: INTERACTIVE CASE ANALYZER WORKSTATION
+                // =====================================================================
+                const analyzerForm = ref({
+                    motive: 'economic',
+                    environment: 'unguarded',
+                    evidence: 'biological',
+                    notes: ''
+                });
+
+                const analyzerPresets = [
+                    {
+                        id: 'p1',
+                        labelTh: '💸 ยักยอกเงินบริษัท',
+                        labelEn: '💸 Corporate Embezzlement',
+                        motive: 'peer',
+                        environment: 'corporate',
+                        evidence: 'digital',
+                        notesTh: 'ผู้จัดการฝ่ายบัญชีเรียนรู้วิธีสร้างใบแจ้งหนี้ปลอมจากรุ่นพี่ในแผนกและลบ Log ออกจากระบบ',
+                        notesEn: 'Accounting manager learned shell-invoice manipulation from senior colleagues and purged system logs.'
+                    },
+                    {
+                        id: 'p2',
+                        labelTh: '🏚️ ชิงทรัพย์ในย่านเสื่อมโทรม',
+                        labelEn: '🏚️ Urban Alley Robbery',
+                        motive: 'economic',
+                        environment: 'disorder',
+                        evidence: 'trace',
+                        notesTh: 'ผู้ต้องหาว่างงานระยะยาว ก่อเหตุในตรอกที่ไฟส่องสว่างชำรุดและมีร่องรอยการทำลายทรัพย์สิน',
+                        notesEn: 'Long-term unemployed suspect offended in a poorly lit alley marked by visible physical disorder.'
+                    },
+                    {
+                        id: 'p3',
+                        labelTh: '🧪 คดีวางยาในงานเลี้ยง',
+                        labelEn: '🧪 Banquet Poisoning',
+                        motive: 'rational',
+                        environment: 'unguarded',
+                        evidence: 'toxicology',
+                        notesTh: 'ผู้ก่อเหตุวางแผนล่วงหน้าเพื่อหวังมรดก โดยผสมสารพิษไร้กลิ่นลงในเครื่องดื่มช่วงที่ไม่มีใครเฝ้าโต๊ะ',
+                        notesEn: 'Premeditated inheritance plot involving an odorless toxin slipped into an unattended drink.'
+                    },
+                    {
+                        id: 'p4',
+                        labelTh: '🔄 เยาวชนทำผิดซ้ำหลังพ้นโทษ',
+                        labelEn: '🔄 Post-Release Recidivism',
+                        motive: 'stigma',
+                        environment: 'disorder',
+                        evidence: 'biological',
+                        notesTh: 'เยาวชนถูกสังคมตราหน้าว่า "เด็กขี้คุก" จนถูกปฏิเสธงานและกลับเข้าสู่กลุ่มเพื่อนเดิม',
+                        notesEn: 'Youth stigmatized as an "ex-con," rejected from jobs, and drawn back into delinquent peer networks.'
+                    }
+                ];
+
+                const applyAnalyzerPreset = (preset) => {
+                    analyzerForm.value.motive = preset.motive;
+                    analyzerForm.value.environment = preset.environment;
+                    analyzerForm.value.evidence = preset.evidence;
+                    analyzerForm.value.notes = lang.value === 'th' ? preset.notesTh : preset.notesEn;
+                    showToast(lang.value === 'th' ? 'โหลดข้อมูลจำลองเข้าเครื่องวิเคราะห์แล้วค่ะ' : 'Preset scenario loaded');
+                };
+
+                const synthesizedResult = computed(() => {
+                    const motiveMap = {
+                        economic: {
+                            titleTh: 'Merton’s Strain Theory (Innovation) & Agnew’s General Strain Theory',
+                            titleEn: 'Merton’s Strain Theory (Innovation) & Agnew’s General Strain Theory',
+                            descTh: 'ชี้ให้เห็นว่าแรงกดดันจากช่องว่างระหว่างเป้าหมายความสำเร็จทางเศรษฐกิจกับโอกาสที่ถูกกฎหมาย บวกกับความคับข้องใจเฉพาะหน้า ผลักดันให้ผู้กระทำผิดเลือกใช้วิธีการนอกระบบ (Innovation) เพื่อบรรลุเป้าหมาย',
+                            descEn: 'Highlights how structural gaps between economic aspirations and blocked legitimate opportunities, compounded by acute stressors, push the offender toward illicit "Innovation."'
+                        },
+                        rational: {
+                            titleTh: 'Cornish & Clarke’s Rational Choice Theory & Beccaria’s Deterrence',
+                            titleEn: 'Cornish & Clarke’s Rational Choice Theory & Beccaria’s Deterrence',
+                            descTh: 'ผู้กระทำผิดมีการวางแผนและชั่งน้ำหนักต้นทุน-ผลตอบแทน (Bounded Rationality) โดยประเมินว่าผลประโยชน์ที่ได้รับสูงกว่าความเสี่ยงในการถูกจับกุม',
+                            descEn: 'Indicates purposive cost-benefit calculation under bounded rationality, where anticipated gains outweighed perceived risks of detection.'
+                        },
+                        peer: {
+                            titleTh: 'Sutherland’s Differential Association & Sykes & Matza’s Neutralization',
+                            titleEn: 'Sutherland’s Differential Association & Sykes & Matza’s Neutralization',
+                            descTh: 'พฤติกรรมอาชญากรรมถูกถ่ายทอดผ่านการเรียนรู้ในกลุ่มคนใกล้ชิด ทั้งในด้านเทคนิคการก่อเหตุและชุดเหตุผลสร้างความชอบธรรมเพื่อลดความรู้สึกผิด (Techniques of Neutralization)',
+                            descEn: 'Demonstrates social transmission of both technical execution and moral rationalizations (Techniques of Neutralization) within intimate peer or workplace groups.'
+                        },
+                        stigma: {
+                            titleTh: 'Becker & Lemert’s Labeling Theory (Secondary Deviance)',
+                            titleEn: 'Becker & Lemert’s Labeling Theory (Secondary Deviance)',
+                            descTh: 'ปฏิกิริยาการตีตราจากสังคมและประวัติอาชญากรรมในอดีตกลายเป็น Master Status ที่ปิดกั้นโอกาสกลับคืนสู่สังคม ทำให้ผู้กระทำผิดยอมรับอัตลักษณ์เบี่ยงเบนและกระทำผิดซ้ำ (Secondary Deviance)',
+                            descEn: 'Shows how official stigmatization becomes a Master Status blocking conventional reintegration, propelling the individual into Secondary Deviance.'
+                        },
+                        impulse: {
+                            titleTh: 'Gottfredson & Hirschi’s Self-Control Theory & Social Bond Theory',
+                            titleEn: 'Gottfredson & Hirschi’s Self-Control Theory & Social Bond Theory',
+                            descTh: 'เกิดจากการขาดความสามารถในการยับยั้งชั่งใจตนเอง (Low Self-Control) ร่วมกับพันธะความผูกพันต่อครอบครัวและสังคมที่อ่อนแอ ทำให้ตอบสนองต่อสิ่งเร้าทันทีโดยไม่คำนึงถึงผลระยะยาว',
+                            descEn: 'Reflects Low Self-Control combined with weakened social bonds (attachment and commitment), yielding immediate gratification without foresight.'
+                        }
+                    };
+
+                    const envMap = {
+                        unguarded: {
+                            titleTh: 'Cohen & Felson’s Routine Activity Theory (Crime Triangle)',
+                            titleEn: 'Cohen & Felson’s Routine Activity Theory (Crime Triangle)',
+                            descTh: 'ความสำเร็จของการก่อเหตุเกิดจากการบรรจบกันขององค์ประกอบ 3 ประการ ได้แก่ ผู้มีแรงจูงใจ เป้าหมายที่เหมาะสม และการขาดผู้พิทักษ์ที่สามารถยับยั้งได้ (Absence of Capable Guardianship)',
+                            descEn: 'The offense materialized through the spatial-temporal convergence of a motivated offender, a suitable target, and the absence of a capable guardian.'
+                        },
+                        disorder: {
+                            titleTh: 'Shaw & McKay’s Social Disorganization & Wilson & Kelling’s Broken Windows',
+                            titleEn: 'Shaw & McKay’s Social Disorganization & Wilson & Kelling’s Broken Windows',
+                            descTh: 'ร่องรอยความเสื่อมโทรมทางกายภาพและการขาดการควบคุมทางสังคมอย่างไม่เป็นทางการในพื้นที่ ส่งสัญญาณว่าไม่มีใครดูแลพื้นที่นี้ เอื้อต่อการเกิดอาชญากรรมซ้ำซาก',
+                            descEn: 'Visible physical disorder and eroded neighborhood collective efficacy signal weak informal social control, inviting escalating offenses.'
+                        },
+                        corporate: {
+                            titleTh: 'Sutherland’s White-Collar Crime & Situational Crime Prevention (SCP)',
+                            titleEn: 'Sutherland’s White-Collar Crime & Situational Crime Prevention (SCP)',
+                            descTh: 'ช่องโหว่ของระบบตรวจสอบภายในและอำนาจหน้าที่ในองค์กรเอื้อให้ผู้กระทำผิดใช้ความไว้วางใจทางวิชาชีพในการปกปิดร่องรอย',
+                            descEn: 'Internal audit loopholes and occupational trust enabled the offender to exploit organizational access while concealing anomalies.'
+                        }
+                    };
+
+                    const forensicMap = {
+                        biological: {
+                            titleTh: 'Forensic Serology, Bloodstain Pattern Analysis (BPA) & STR DNA Profiling',
+                            titleEn: 'Forensic Serology, Bloodstain Pattern Analysis (BPA) & STR DNA Profiling',
+                            descTh: 'ตรวจคัดกรองคราบชีวภาพด้วย Kastle-Meyer หรือ Luminol วิเคราะห์มุมตกกระทบและทิศทางคราบเลือดเพื่อจำลองเหตุการณ์ จากนั้นสกัดสารพันธุกรรมด้วย PCR-STR เทียบฐานข้อมูล',
+                            descEn: 'Screen biological stains via Kastle-Meyer/Luminol, reconstruct trajectory via BPA impact angles, and generate CODIS-compatible STR DNA profiles.'
+                        },
+                        digital: {
+                            titleTh: 'Digital Forensics: Bit-Stream Imaging, Hash Verification & Metadata Audit',
+                            titleEn: 'Digital Forensics: Bit-Stream Imaging, Hash Verification & Metadata Audit',
+                            descTh: 'ใช้ Write-Blocker ทำสำเนาข้อมูลระดับบิต คำนวณค่าแฮช SHA-256 รักษา Chain of Custody กู้คืนไฟล์ที่ถูกลบจาก Unallocated Space และตรวจสอบ Timestamp/IP Logs',
+                            descEn: 'Acquire bit-stream images via write-blockers, verify SHA-256 hashes, recover deleted records from unallocated space, and correlate timestamps/IP logs.'
+                        },
+                        trace: {
+                            titleTh: 'Locard’s Exchange Principle & Microscopic Trace Comparison',
+                            titleEn: 'Locard’s Exchange Principle & Microscopic Trace Comparison',
+                            descTh: 'เก็บวัตถุพยานขนาดเล็ก (เส้นใยผ้า เศษกระจก ดิน รอยรองเท้า) ด้วยการคีบ เทปกาว หรือการหล่อพิมพ์ เพื่อเปรียบเทียบคุณสมบัติทางกายภาพและเคมีกับของกลางจากผู้ต้องสงสัย',
+                            descEn: 'Recover fibers, glass, soil, or footwear impressions via tape-lifting/casting for comparison microscopy and refractive-index/chemical matching.'
+                        },
+                        toxicology: {
+                            titleTh: 'Forensic Toxicology: Immunoassay Screening & GC-MS / LC-MS Confirmation',
+                            titleEn: 'Forensic Toxicology: Immunoassay Screening & GC-MS / LC-MS Confirmation',
+                            descTh: 'เก็บตัวอย่างเลือด ปัสสาวะ และน้ำในลูกตา (Vitreous Humor) ตรวจคัดกรองเบื้องต้นด้วย ELISA และยืนยันชนิดพร้อมปริมาณสารพิษด้วยเครื่อง GC-MS หรือ LC-MS/MS',
+                            descEn: 'Collect blood, urine, and vitreous humor; perform ELISA immunoassay screening followed by definitive GC-MS or LC-MS/MS quantification.'
+                        }
+                    };
+
+                    const m = motiveMap[analyzerForm.value.motive];
+                    const e = envMap[analyzerForm.value.environment];
+                    const f = forensicMap[analyzerForm.value.evidence];
+
+                    return {
+                        motiveTheory: m,
+                        envTheory: e,
+                        forensicProtocol: f,
+                        scholarQuery: `${m.titleEn.split('&')[0]} ${f.titleEn.split(':')[0]}`
+                    };
+                });
+
+                const copyAnalyzerReport = () => {
+                    const r = synthesizedResult.value;
+                    const text = [
+                        '=== CRIMINO-DEX SYNTHESIZED CASE BRIEF ===',
+                        analyzerForm.value.notes ? `Case Notes: ${analyzerForm.value.notes}` : '',
+                        `1. Etiology: ${lang.value === 'th' ? r.motiveTheory.titleTh : r.motiveTheory.titleEn}`,
+                        `   ${lang.value === 'th' ? r.motiveTheory.descTh : r.motiveTheory.descEn}`,
+                        `2. Environment: ${lang.value === 'th' ? r.envTheory.titleTh : r.envTheory.titleEn}`,
+                        `   ${lang.value === 'th' ? r.envTheory.descTh : r.envTheory.descEn}`,
+                        `3. Forensic Protocol: ${lang.value === 'th' ? r.forensicProtocol.titleTh : r.forensicProtocol.titleEn}`,
+                        `   ${lang.value === 'th' ? r.forensicProtocol.descTh : r.forensicProtocol.descEn}`
+                    ].filter(Boolean).join('\n');
+                    copyCitation(text);
+                };
+
+                // =====================================================================
+                // DATA 4: INTERACTIVE THEORY NETWORK (ผังสายสัมพันธ์บนกระดานนักสืบ)
+                // =====================================================================
+                const networkNodes = [
+                    {
+                        id: 'beccaria', x: 95, y: 110,
+                        shortTh: 'Beccaria (1764)', shortEn: 'Beccaria (1764)', sub: 'Classical Deterrence',
+                        titleTh: 'สำนักคลาสสิกและทฤษฎีการยับยั้งชั่งใจ (Beccaria, 1764)',
+                        titleEn: 'Classical Deterrence Theory (Beccaria, 1764)',
+                        summaryTh: 'จุดเริ่มต้นของอาชญาวิทยาสมัยใหม่ เชื่อว่ามนุษย์มีเจตจำนงเสรีและคำนวณผลได้ผลเสีย การลงโทษที่แน่นอนและรวดเร็วจะยับยั้งอาชญากรรมได้ แนวคิดนี้ถูกต่อยอดเป็น Rational Choice และ Routine Activity ในศตวรรษที่ 20',
+                        summaryEn: 'Foundation of modern criminology positing rational free will and swift, certain punishment—later revived by Rational Choice and Routine Activity theorists.',
+                        paperQuery: 'Cesare Beccaria On Crimes and Punishments Deterrence'
+                    },
+                    {
+                        id: 'positivism', x: 95, y: 320,
+                        shortTh: 'Lombroso (1876)', shortEn: 'Lombroso (1876)', sub: 'Positivist / Biosocial',
+                        titleTh: 'สำนักปฏิฐานนิยมและการใช้วิทยาศาสตร์ศึกษาอาชญากร (Positivism)',
+                        titleEn: 'Positivist School & Scientific Measurement',
+                        summaryTh: 'เปลี่ยนจุดเน้นจากตัวบทกฎหมายมาสู่การศึกษาตัวผู้กระทำผิดด้วยวิธีการทางวิทยาศาสตร์ แม้ทฤษฎี Atavism ของ Lombroso จะถูกหักล้าง แต่การนำวิทยาศาสตร์มาตรวจพิสูจน์ได้ปูทางสู่ Biosocial Criminology และนิติวิทยาศาสตร์สมัยใหม่',
+                        summaryEn: 'Shifted focus from legal codes to empirical measurement of offenders; though biological atavism was refuted, its scientific ethos paved the way for modern forensic science.',
+                        paperQuery: 'Cesare Lombroso Positivist Criminology history forensic science'
+                    },
+                    {
+                        id: 'rational', x: 310, y: 95,
+                        shortTh: 'Rational & RAT', shortEn: 'Rational & RAT', sub: 'Clarke / Felson (1979-86)',
+                        titleTh: 'ทฤษฎีการเลือกอย่างมีเหตุผลและกิจวัตรประจำวัน (Neo-Classical)',
+                        titleEn: 'Rational Choice & Routine Activity Theory',
+                        summaryTh: 'ฟื้นฟูแนวคิดความมีเหตุผลของ Beccaria มาวิเคราะห์สภาพแวดล้อมเฉพาะหน้า: อาชญากรรมเกิดเมื่อผู้มีแรงจูงใจพบเป้าหมายที่เหมาะสมในพื้นที่ที่ขาดผู้พิทักษ์ยับยั้ง',
+                        summaryEn: 'Modernized Beccaria’s rationality into situational analysis: crime happens when a motivated offender meets a suitable target without a capable guardian.',
+                        paperQuery: 'Cornish Clarke Rational Choice Cohen Felson Routine Activity'
+                    },
+                    {
+                        id: 'strain', x: 310, y: 235,
+                        shortTh: 'Merton -> Agnew', shortEn: 'Merton -> Agnew', sub: 'Strain Theory (1938-92)',
+                        titleTh: 'สายธารทฤษฎีความกดดัน (Merton 1938 สู่ Agnew 1992)',
+                        titleEn: 'Strain Lineage: Merton (1938) to Agnew (1992)',
+                        summaryTh: 'เริ่มจาก Merton ที่ชี้ให้เห็นความเหลื่อมล้ำระหว่างเป้าหมายทางเศรษฐกิจกับโอกาสที่ถูกกฎหมาย และต่อยอดโดย Agnew (General Strain Theory) ที่รวมความกดดันทางอารมณ์และความสัมพันธ์เข้ามาด้วย',
+                        summaryEn: 'Evolved from Merton’s structural gap between cultural goals and institutional means to Agnew’s General Strain Theory incorporating emotional and interpersonal stressors.',
+                        paperQuery: 'Merton 1938 Agnew 1992 Strain Theory Criminology'
+                    },
+                    {
+                        id: 'chicago', x: 310, y: 375,
+                        shortTh: 'Chicago School', shortEn: 'Chicago School', sub: 'Shaw & McKay (1942)',
+                        titleTh: 'สำนักชิคาโกและความไม่เป็นระเบียบของสังคม (Social Disorganization)',
+                        titleEn: 'Chicago School & Social Disorganization',
+                        summaryTh: 'พิสูจน์ว่าสภาพแวดล้อมทางสังคมและโครงสร้างชุมชนที่เสื่อมโทรมส่งผลต่ออัตราอาชญากรรมมากกว่าพันธุกรรม เชื่อมโยงทั้งกับทฤษฎีความกดดันและกระบวนการเรียนรู้ในชุมชน',
+                        summaryEn: 'Demonstrated that neighborhood disorganization and eroded collective efficacy drive crime rates far more than individual biology.',
+                        paperQuery: 'Shaw McKay 1942 Social Disorganization Chicago School'
+                    },
+                    {
+                        id: 'learning', x: 520, y: 165,
+                        shortTh: 'Sutherland -> Akers', shortEn: 'Sutherland -> Akers', sub: 'Social Learning (1947)',
+                        titleTh: 'ทฤษฎีการคบหาสมาคมที่แตกต่างและการเรียนรู้ทางสังคม',
+                        titleEn: 'Differential Association & Social Learning Theory',
+                        summaryTh: 'Sutherland อธิบายว่าอาชญากรรม (รวมถึงอาชญากรรมคอปกขาว) เรียนรู้จากกลุ่มใกล้ชิด ต่อมา Ronald Akers ได้ผสานหลักจิตวิทยาการเสริมแรง (Operant Conditioning) เข้าไปเป็น Social Learning Theory',
+                        summaryEn: 'Sutherland explained how criminal techniques and rationalizations are learned in intimate groups; Akers later integrated operant conditioning into Social Learning Theory.',
+                        paperQuery: 'Sutherland Differential Association Ronald Akers Social Learning'
+                    },
+                    {
+                        id: 'labeling', x: 520, y: 320,
+                        shortTh: 'Hirschi & Becker', shortEn: 'Hirschi & Becker', sub: 'Control & Labeling',
+                        titleTh: 'ทฤษฎีพันธะทางสังคม (Hirschi) และทฤษฎีการตีตรา (Becker)',
+                        titleEn: 'Social Control (Hirschi) & Labeling Theory (Becker)',
+                        summaryTh: 'Hirschi อธิบายว่าพันธะทางสังคมช่วยยับยั้งการทำผิด แต่หากเกิดการกระทำผิดและถูกกระบวนการยุติธรรม "ตีตรา" อย่างรุนแรงตามแนวคิดของ Becker อาจผลักดันให้เกิด Secondary Deviance',
+                        summaryEn: 'Hirschi showed how social bonds restrain offending, whereas Becker’s Labeling Theory warned that stigmatizing labels can solidify Secondary Deviance.',
+                        paperQuery: 'Hirschi Social Bond Becker Labeling Theory'
+                    },
+                    {
+                        id: 'forensics', x: 680, y: 235,
+                        shortTh: 'Locard & DNA', shortEn: 'Locard & DNA', sub: 'Forensic Reconstruction',
+                        titleTh: 'นิติวิทยาศาสตร์และการพิสูจน์ความจริงเชิงวัตถุพยาน (Locard & Jeffreys)',
+                        titleEn: 'Forensic Reconstruction: Locard’s Principle & DNA',
+                        summaryTh: 'สะพานเชื่อมระหว่างทฤษฎีพฤติกรรมกับความยุติธรรมในศาล: ใช้หลักการแลกเปลี่ยนของ Locard, ลายพิมพ์ DNA ของ Jeffreys และมาตรฐาน Daubert เพื่อพิสูจน์ข้อเท็จจริงอย่างปราศจากข้อสงสัย',
+                        summaryEn: 'Bridges behavioral theory and courtroom justice through Locard’s trace exchange, Jeffreys’ DNA profiling, and Daubert scientific admissibility standards.',
+                        paperQuery: 'Locard Exchange Principle Alec Jeffreys DNA Daubert Standard'
+                    }
+                ];
+
+                const networkEdges = [
+                    { from: 'beccaria', to: 'rational', dashed: false },
+                    { from: 'positivism', to: 'chicago', dashed: true },
+                    { from: 'positivism', to: 'forensics', dashed: false },
+                    { from: 'chicago', to: 'strain', dashed: false },
+                    { from: 'chicago', to: 'learning', dashed: false },
+                    { from: 'strain', to: 'learning', dashed: true },
+                    { from: 'learning', to: 'labeling', dashed: true },
+                    { from: 'rational', to: 'forensics', dashed: true },
+                    { from: 'labeling', to: 'forensics', dashed: true }
+                ];
+
+                const selectedNodeId = ref('strain');
+
+                const getNode = (id) => networkNodes.find((n) => n.id === id) || networkNodes[0];
+                const activeNetworkNode = computed(() => getNode(selectedNodeId.value));
+
+                const isNodeConnected = (id) => {
+                    if (id === selectedNodeId.value) return true;
+                    return networkEdges.some(
+                        (e) => (e.from === selectedNodeId.value && e.to === id) || (e.to === selectedNodeId.value && e.from === id)
+                    );
+                };
+
+                const isEdgeHighlighted = (edge) => {
+                    return edge.from === selectedNodeId.value || edge.to === selectedNodeId.value;
+                };
+
+                const activeNodeConnections = computed(() => {
+                    const ids = new Set();
+                    networkEdges.forEach((e) => {
+                        if (e.from === selectedNodeId.value) ids.add(e.to);
+                        if (e.to === selectedNodeId.value) ids.add(e.from);
+                    });
+                    return Array.from(ids).map((id) => getNode(id));
+                });
+
+                // =====================================================================
+                // DATA 5: 3D EXAM FLASHCARDS
+                // =====================================================================
+                const flashcardsData = [
+                    {
+                        id: 'fc1',
+                        categoryTh: 'อาชญาวิทยา — โครงสร้าง',
+                        categoryEn: 'Criminology — Structural',
+                        theorist: 'Robert K. Merton (1938)',
+                        frontTh: 'การปรับตัวแบบ "Innovation" ในทฤษฎี Strain Theory ของ Merton หมายถึงอะไร?',
+                        frontEn: 'What does "Innovation" mean in Merton’s Strain Theory?',
+                        backTh: 'การที่บุคคลยอมรับเป้าหมายความสำเร็จทางวัฒนธรรม (เช่น ความร่ำรวย) แต่ปฏิเสธหรือไม่มีช่องทางที่ถูกกฎหมาย จึงหันไปใช้วิธีการที่ผิดกฎหมาย (เช่น ลักทรัพย์ ฉ้อโกง ค้ายา) เพื่อบรรลุเป้าหมายนั้น',
+                        backEn: 'Accepting culturally prescribed success goals (wealth) while rejecting or lacking legitimate institutional means, turning instead to illicit methods.',
+                        tipTh: 'จำง่ายๆ: รับเป้าหมาย (+) แต่วิธีการติดลบ (-) = Innovation (คิดค้นวิธีลัดที่ผิดกฎหมาย)',
+                        tipEn: 'Memory hook: Goals (+) / Legitimate Means (-) = Innovation.'
+                    },
+                    {
+                        id: 'fc2',
+                        categoryTh: 'อาชญาวิทยา — สถานการณ์',
+                        categoryEn: 'Criminology — Situational',
+                        theorist: 'Cohen & Felson (1979)',
+                        frontTh: 'องค์ประกอบ 3 ประการ (Crime Triangle) ในทฤษฎี Routine Activity Theory คืออะไรบ้าง?',
+                        frontEn: 'What are the 3 converging elements in Routine Activity Theory?',
+                        backTh: '1. ผู้กระทำผิดที่มีแรงจูงใจ (Motivated Offender) 2. เป้าหมายที่เหมาะสม (Suitable Target - VIVA) และ 3. การขาดผู้พิทักษ์ที่สามารถยับยั้งได้ (Absence of a Capable Guardian)',
+                        backEn: '1. A motivated offender, 2. A suitable target (VIVA), and 3. The absence of a capable guardian.',
+                        tipTh: 'หากขาดองค์ประกอบใดองค์ประกอบหนึ่งไป อาชญากรรมจะไม่เกิดขึ้น!',
+                        tipEn: 'Remove any single leg of the triangle and the crime is prevented.'
+                    },
+                    {
+                        id: 'fc3',
+                        categoryTh: 'นิติวิทยาศาสตร์ — หลักพื้นฐาน',
+                        categoryEn: 'Forensic Science — Core',
+                        theorist: 'Dr. Edmond Locard (1910)',
+                        frontTh: 'หัวใจสำคัญของ Locard’s Exchange Principle คืออะไร และเกี่ยวข้องกับพยานหลักฐานประเภทใดมากที่สุด?',
+                        frontEn: 'What is the core tenet of Locard’s Exchange Principle?',
+                        backTh: '"Every contact leaves a trace" (ทุกการสัมผัสย่อมทิ้งร่องรอย) เมื่อวัตถุสองสิ่งสัมผัสกันจะเกิดการถ่ายโอนร่องรอยระดับจุลภาค (Trace Evidence) เช่น เส้นผม เส้นใยผ้า เศษกระจก และดิน',
+                        backEn: '"Every contact leaves a trace." Physical contact between two items results in cross-transfer of microscopic trace evidence (hair, fibers, glass, soil).',
+                        tipTh: 'เป็นเหตุผลที่นักนิติวิทยาศาสตร์ต้องสวมชุด PPE และเปลี่ยนถุงมือทุกครั้งที่เก็บหลักฐานแต่ละชิ้น',
+                        tipEn: 'Why crime scene investigators wear full PPE and change gloves between items.'
+                    },
+                    {
+                        id: 'fc4',
+                        categoryTh: 'อาชญาวิทยา — การควบคุม',
+                        categoryEn: 'Criminology — Control',
+                        theorist: 'Travis Hirschi (1969)',
+                        frontTh: 'พันธะทางสังคม 4 ประการ (4 Social Bonds) ของ Hirschi ประกอบด้วยอะไรบ้าง?',
+                        frontEn: 'Name the four elements of Hirschi’s Social Bond Theory.',
+                        backTh: '1. Attachment (ความผูกพันทางอารมณ์กับคนรอบข้าง) 2. Commitment (ความมุ่งมั่นลงทุนกับอนาคต) 3. Involvement (การเข้าร่วมกิจกรรมสร้างสรรค์) 4. Belief (ความศรัทธาในกฎเกณฑ์และกฎหมาย)',
+                        backEn: '1. Attachment, 2. Commitment, 3. Involvement, and 4. Belief.',
+                        tipTh: 'ท่องย่อว่า A - C - I - B (Attachment, Commitment, Involvement, Belief)',
+                        tipEn: 'Acronym: A - C - I - B.'
+                    },
+                    {
+                        id: 'fc5',
+                        categoryTh: 'อาชญาวิทยา — วิพากษ์',
+                        categoryEn: 'Criminology — Critical',
+                        theorist: 'Edwin Lemert & Howard Becker',
+                        frontTh: 'ความแตกต่างระหว่าง Primary Deviance และ Secondary Deviance ในทฤษฎีการตีตราคืออะไร?',
+                        frontEn: 'Differentiate Primary Deviance from Secondary Deviance in Labeling Theory.',
+                        backTh: 'Primary Deviance คือการละเมิดกฎครั้งแรกๆ ที่ยังไม่กระทบอัตลักษณ์ ส่วน Secondary Deviance คือการกระทำผิดซ้ำหลังจากถูกสังคมตีตรา (Stigma) จนบุคคลยอมรับอัตลักษณ์อาชญากรเป็นตัวตนหลัก (Master Status)',
+                        backEn: 'Primary deviance is initial norm-breaking before identity shifts; Secondary deviance is continued offending after societal labeling creates a stigmatized Master Status.',
+                        tipTh: 'Primary = ทำผิดก่อนถูกตีตรา | Secondary = ทำผิดซ้ำเพราะป้ายตรา',
+                        tipEn: 'Primary = pre-label act | Secondary = post-label identity.'
+                    },
+                    {
+                        id: 'fc6',
+                        categoryTh: 'นิติวิทยาศาสตร์ — ชีววิทยา & กฎหมาย',
+                        categoryEn: 'Forensic Science — Biology & Law',
+                        theorist: 'U.S. Supreme Court (1993)',
+                        frontTh: 'มาตรฐาน Daubert Standard แตกต่างจาก Frye Standard เดิมในการรับฟังพยานผู้เชี่ยวชาญอย่างไร?',
+                        frontEn: 'How does the Daubert Standard differ from the older Frye Standard?',
+                        backTh: 'Frye ดูเพียงการยอมรับทั่วไปในวงการ (General Acceptance) แต่ Daubert กำหนดให้ผู้พิพากษาเป็น Gatekeeper ตรวจสอบ 5 เกณฑ์: ทดสอบซ้ำได้ (Testability), ตีพิมพ์ Peer-Review, มีอัตราคลาดเคลื่อนชัดเจน (Error Rate), มีมาตรฐานควบคุม และเป็นที่ยอมรับ',
+                        backEn: 'While Frye relied solely on "general acceptance," Daubert makes judges gatekeepers assessing testability, peer review, known error rates, standards, and general acceptance.',
+                        tipTh: 'จำคำว่า Judge = Gatekeeper และต้องมี Known Error Rate!',
+                        tipEn: 'Key terms: Judicial Gatekeeper + Known Error Rate.'
+                    }
+                ];
+
+                const currentCardIndex = ref(0);
+                const isCardFlipped = ref(false);
+                const masteredCards = ref([]);
+
+                const currentFlashcard = computed(() => flashcardsData[currentCardIndex.value]);
+
+                const nextCard = () => {
+                    isCardFlipped.value = false;
+                    currentCardIndex.value = (currentCardIndex.value + 1) % flashcardsData.length;
+                };
+
+                const prevCard = () => {
+                    isCardFlipped.value = false;
+                    currentCardIndex.value = (currentCardIndex.value - 1 + flashcardsData.length) % flashcardsData.length;
+                };
+
+                const toggleMastered = (id) => {
+                    const idx = masteredCards.value.indexOf(id);
+                    if (idx === -1) {
+                        masteredCards.value.push(id);
+                        showToast(lang.value === 'th' ? 'บันทึกการ์ดนี้เข้าคลังจำแม่นแล้วค่ะ ⭐' : 'Card marked as mastered ⭐');
+                    } else {
+                        masteredCards.value.splice(idx, 1);
+                    }
+                };
+
+                const resetFlashcards = () => {
+                    masteredCards.value = [];
+                    currentCardIndex.value = 0;
+                    isCardFlipped.value = false;
+                };
+
+                onMounted(() => {
+                    // Ensure dark noir mode initializes cleanly
+                    document.documentElement.classList.remove('theme-light');
+                });
+
+                return {
+                    lang,
+                    isDark,
+                    activeTab,
+                    navTabs,
+                    toastMessage,
+                    isPlayingAudio,
+                    toggleLang,
+                    toggleTheme,
+                    toggleAudio,
+                    buildScholarUrl,
+                    buildSemanticScholarUrl,
+                    buildYoutubeUrl,
+                    copyCitation,
+                    // Tab 1
+                    casesData,
+                    selectedCaseIndex,
+                    selectedOption,
+                    revealCaseBreakdown,
+                    currentCase,
+                    selectCase,
+                    answerCaseQuestion,
+                    // Tab 2
+                    searchQuery,
+                    selectedCategory,
+                    theoryCategories,
+                    theoriesData,
+                    filteredTheories,
+                    // Tab 3
+                    analyzerForm,
+                    analyzerPresets,
+                    applyAnalyzerPreset,
+                    synthesizedResult,
+                    copyAnalyzerReport,
+                    // Tab 4
+                    networkNodes,
+                    networkEdges,
+                    selectedNodeId,
+                    getNode,
+                    activeNetworkNode,
+                    isNodeConnected,
+                    isEdgeHighlighted,
+                    activeNodeConnections,
+                    // Tab 5
+                    flashcardsData,
+                    currentCardIndex,
+                    isCardFlipped,
+                    masteredCards,
+                    currentFlashcard,
+                    nextCard,
+                    prevCard,
+                    toggleMastered,
+                    resetFlashcards
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
